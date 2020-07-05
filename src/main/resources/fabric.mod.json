@@ -1,37 +1,36 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "fluidphysics",
   "version": "${version}",
-
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Fluid Physics",
+  "description": "This mod makes fluids flow but preserves most of the vanilla fluid physics.",
   "authors": [
-    "Me!"
+    "LolHens"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/LolHens/mc-fluid-physics",
+    "sources": "https://github.com/LolHens/mc-fluid-physics"
   },
-
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
-
+  "license": "Apache-2.0",
+  "icon": "assets/fluidphysics/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      {
+        "adapter": "scala",
+        "value": "de.lolhens.fluidphysics.FluidPhysicsMod"
+      }
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "fluidphysics.mixins.json"
   ],
-
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric": "*",
-    "minecraft": "1.15.x"
+    "minecraft": "1.16.x"
   },
-  "suggests": {
-    "flamingo": "*"
+  "requires": {
+    "fabric-language-scala": "*"
   }
 }

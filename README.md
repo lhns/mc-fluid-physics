@@ -1,9 +1,5 @@
-# Fabric Example Mod
-
-## Setup
-
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+# Fluid Physics (Minecraft Mod)
+This mod makes fluids flow but preserves most of the vanilla fluid physics.
 
 ## License
-
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+This project uses the Apache 2.0 License. See the file called LICENSE.

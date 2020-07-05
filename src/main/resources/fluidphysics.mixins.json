@@ -1,12 +1,14 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.fabricmc.example.mixin",
+  "package": "de.lolhens.fluidphysics.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
   "client": [
-    "ExampleMixin"
+    "WaterColorMixin",
+    "WaterFluidMixin",
+    "FlowableFluidMixin"
   ],
   "injectors": {
     "defaultRequire": 1
