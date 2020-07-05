@@ -27,7 +27,7 @@ public class WaterColorMixin {
                 r = 255 / 8 * state.getLevel();
                 g = state.isStill() ? 255 : 0;
                 b = state.get(FlowableFluid.FALLING) ? 255 : 0;
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
 
             int color = (r << 16) | (g << 8) | b;

@@ -8,6 +8,8 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object FluidSourceFinder {
+  private val defaultMaxIterations = 255
+
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid): Option[BlockPos] =
@@ -17,10 +19,7 @@ object FluidSourceFinder {
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction): Option[BlockPos] =
-    findSource(world, blockPos, fluid, direction, 255)
-
-  private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
-  private val iterationWarnThreshold = 200
+    findSource(world, blockPos, fluid, direction, defaultMaxIterations)
 
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
@@ -38,6 +37,8 @@ object FluidSourceFinder {
       mutable.Set.empty
     )
 
+  private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
+
   private def findSourceInternal(world: WorldAccess,
                                  blockPos: BlockPos,
                                  fluidState: FluidState,
@@ -47,8 +48,6 @@ object FluidSourceFinder {
                                  iteration: Int,
                                  ignoreBlocks: mutable.Set[BlockPos]): Option[BlockPos] = {
     if (iteration > maxIterations) return None
-
-    //if (maxIterations < iterationWarnThreshold && maxIterations % 20 == 0) System.out.println("WATER SEARCH i=" + maxIterations + " " + blockPos)
 
     if (ignoreBlocks.contains(blockPos)) return None
     ignoreBlocks.add(blockPos)
