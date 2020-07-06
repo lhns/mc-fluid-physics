@@ -1,10 +1,7 @@
 package de.lolhens.fluidphysics.mixin;
 
 import de.lolhens.fluidphysics.FluidSourceFinder;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.block.FluidDrainable;
-import net.minecraft.block.FluidFillable;
+import net.minecraft.block.*;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -57,7 +54,8 @@ public abstract class FlowableFluidMixin {
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
         if (flowDirection == Direction.DOWN &&
-                fluid.matchesType(fluidBlockState.getFluidState().getFluid()) &&
+                !fluidState.isEmpty() &&
+                fluidBlockState.getFluidState().getFluid().matchesType(fluid) &&
                 !fluidState.isStill()) {
             info.setReturnValue(true);
         }
@@ -83,6 +81,11 @@ public abstract class FlowableFluidMixin {
         BlockPos up = pos.up();
 
         if (direction == Direction.DOWN || world.getFluidState(up).getFluid().matchesType(still.getFluid())) {
+            BlockState blockStateBelow = world.getBlockState(pos.down());
+
+            boolean isFlowingOntoPiston = blockStateBelow.getBlock() instanceof PistonBlock && blockStateBelow.get(FacingBlock.FACING) == Direction.UP;
+            if (isFlowingOntoPiston) return;
+
             Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
 
             if (sourcePos.isDefined()) {
@@ -95,7 +98,7 @@ public abstract class FlowableFluidMixin {
                 if (sourceState.getBlock() instanceof FluidDrainable && !(sourceState.getBlock() instanceof FluidBlock)) {
                     ((FluidDrainable) sourceState.getBlock()).tryDrainFluid(world, sourcePos.get(), sourceState);
                 } else {
-                    if (!state.isAir()) {
+                    if (!sourceState.isAir()) {
                         this.beforeBreakingBlock(world, sourcePos.get(), sourceState);
                     }
 

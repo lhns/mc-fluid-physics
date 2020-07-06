@@ -10,6 +10,8 @@ import scala.jdk.CollectionConverters._
 object FluidSourceFinder {
   private val defaultMaxIterations = 255
 
+  def setOf(blockPos: java.util.Collection[BlockPos]): mutable.Set[BlockPos] = blockPos.asScala.to(mutable.Set)
+
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid): Option[BlockPos] =
@@ -19,12 +21,24 @@ object FluidSourceFinder {
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction): Option[BlockPos] =
-    findSource(world, blockPos, fluid, direction, defaultMaxIterations)
+    findSource(world, blockPos, fluid, direction, mutable.Set.empty, ignoreFirst = false, ignoreLevel = false, defaultMaxIterations)
 
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction,
+                 ignoreBlocks: mutable.Set[BlockPos],
+                 ignoreFirst: Boolean,
+                 ignoreLevel: Boolean): Option[BlockPos] =
+    findSource(world, blockPos, fluid, direction, ignoreBlocks, ignoreFirst, ignoreLevel, defaultMaxIterations)
+
+  def findSource(world: WorldAccess,
+                 blockPos: BlockPos,
+                 fluid: Fluid,
+                 direction: Direction,
+                 ignoreBlocks: mutable.Set[BlockPos],
+                 ignoreFirst: Boolean,
+                 ignoreLevel: Boolean,
                  maxIterations: Int): Option[BlockPos] =
     findSourceInternal(
       world,
@@ -32,9 +46,11 @@ object FluidSourceFinder {
       world.getFluidState(blockPos),
       fluid,
       direction,
+      ignoreBlocks,
+      ignoreFirst,
+      ignoreLevel,
       maxIterations,
-      0,
-      mutable.Set.empty
+      0
     )
 
   private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
@@ -44,12 +60,14 @@ object FluidSourceFinder {
                                  fluidState: FluidState,
                                  fluid: Fluid,
                                  direction: Direction,
+                                 ignoreBlocks: mutable.Set[BlockPos],
+                                 ignoreFirst: Boolean,
+                                 ignoreLevel: Boolean,
                                  maxIterations: Int,
-                                 iteration: Int,
-                                 ignoreBlocks: mutable.Set[BlockPos]): Option[BlockPos] = {
+                                 iteration: Int): Option[BlockPos] = {
     if (iteration > maxIterations) return None
 
-    if (ignoreBlocks.contains(blockPos)) return None
+    if (!ignoreFirst && ignoreBlocks.contains(blockPos)) return None
     ignoreBlocks.add(blockPos)
 
     if (!fluidState.isEmpty && fluidState.getFluid.matchesType(fluid)) {
@@ -57,12 +75,12 @@ object FluidSourceFinder {
         val up = blockPos.up()
         val upFluidState = world.getFluidState(up)
         if (!upFluidState.isEmpty && upFluidState.getFluid.matchesType(fluid)) {
-          val sourcePos = findSourceInternal(world, up, upFluidState, fluid, Direction.UP, maxIterations, iteration + 1, ignoreBlocks)
+          val sourcePos = findSourceInternal(world, up, upFluidState, fluid, Direction.UP, ignoreBlocks, ignoreFirst = false, ignoreLevel = false, maxIterations, iteration + 1)
           if (sourcePos.isDefined) return sourcePos
         }
       }
 
-      if (fluidState.isStill) {
+      if (!ignoreFirst && fluidState.isStill) {
         return Some(blockPos)
       }
 
@@ -71,16 +89,16 @@ object FluidSourceFinder {
       val oppositeDirection = direction.getOpposite
       var i = 0
       while (i < horizontal.length) {
-        if (direction != oppositeDirection) {
-          val nextDirection = horizontal(i)
+        val nextDirection = horizontal(i)
+        if (nextDirection != oppositeDirection) {
           val level = fluidState.getLevel
           val nextBlockPos = blockPos.offset(nextDirection)
           val nextFluidState = world.getFluidState(nextBlockPos)
           if (!nextFluidState.isEmpty) {
             val nextLevel = nextFluidState.getLevel
             val nextFalling = nextFluidState.get(FlowableFluid.FALLING)
-            if (nextLevel > level || (falling && !nextFalling)) {
-              val sourcePos = findSourceInternal(world, nextBlockPos, nextFluidState, fluid, nextDirection, maxIterations, iteration + 1, ignoreBlocks)
+            if (nextLevel > level || (falling && !nextFalling) || ignoreLevel) {
+              val sourcePos = findSourceInternal(world, nextBlockPos, nextFluidState, fluid, nextDirection, ignoreBlocks, ignoreFirst = false, ignoreLevel, maxIterations, iteration + 1)
               if (sourcePos.isDefined) return sourcePos
             }
           }
