@@ -2,7 +2,7 @@
 This mod makes fluids flow but tries to preserve as much of the vanilla fluid physics as possible.
 
 ## Feature
-- Floud source blocks can flow down
+- Fluid source blocks can flow down
 - Pistons can pump fluids
 - Spring blocks generate under naturally generated springs and prevent them from flowing down
 
