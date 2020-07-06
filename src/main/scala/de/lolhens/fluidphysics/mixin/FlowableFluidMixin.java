@@ -1,6 +1,6 @@
 package de.lolhens.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.FluidSourceFinder;
+import de.lolhens.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
