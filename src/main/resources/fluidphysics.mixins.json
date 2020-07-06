@@ -10,7 +10,8 @@
     "WaterFluidMixin",
     "FlowableFluidMixin",
     "AbstractBlockMixin",
-    "PistonBlockMixin"
+    "PistonBlockMixin",
+    "SpringFeatureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

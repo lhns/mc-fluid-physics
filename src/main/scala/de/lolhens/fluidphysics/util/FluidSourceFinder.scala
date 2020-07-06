@@ -1,5 +1,6 @@
-package de.lolhens.fluidphysics
+package de.lolhens.fluidphysics.util
 
+import de.lolhens.fluidphysics.FluidPhysicsMod
 import net.minecraft.fluid.{FlowableFluid, Fluid, FluidState}
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.WorldAccess
