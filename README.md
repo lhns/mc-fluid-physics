@@ -1,5 +1,6 @@
 # Fluid Physics (Minecraft Mod)
 This mod makes fluids flow realistically but tries to preserve as much of the vanilla fluid physics as possible.
+Fluids flowing horizontally will not be affected by this mod. If fluid flows vertically the source of the stream will flow down.
 
 ## Features
 - Fluid source blocks can flow down
