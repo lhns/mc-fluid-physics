@@ -1,16 +1,14 @@
 # This workflow will build a Java project with Gradle
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: release
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  release:
+    types: [published]
 
 jobs:
-  build:
+  release:
 
     runs-on: ubuntu-latest
 
@@ -26,5 +24,8 @@ jobs:
         run: ./gradlew remapJar
       - uses: actions/upload-artifact@v2
         with:
-          name: artifacts
           path: build/libs/*
+      - uses: AButler/upload-release-assets@v2.0
+          with:
+            files: build/libs/*
+            repo-token: ${{ secrets.GITHUB_TOKEN }}
