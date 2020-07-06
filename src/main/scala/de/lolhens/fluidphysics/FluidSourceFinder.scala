@@ -80,13 +80,20 @@ object FluidSourceFinder {
         }
       }
 
+      val oppositeDirection = direction.getOpposite
+
       if (!ignoreFirst && fluidState.isStill) {
-        return Some(blockPos)
+        val nextToSpring = (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
+          world.getBlockState(blockPos.offset(direction)).isOf(FluidPhysicsMod.SPRING_BLOCK)
+        }
+
+        if (!nextToSpring) {
+          return Some(blockPos)
+        }
       }
 
       val falling = fluidState.get(FlowableFluid.FALLING)
 
-      val oppositeDirection = direction.getOpposite
       var i = 0
       while (i < horizontal.length) {
         val nextDirection = horizontal(i)
