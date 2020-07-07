@@ -3,6 +3,7 @@ This mod makes fluids flow downhill but tries to preserve some aspects of the va
 Fluids flowing horizontally will not be affected by this mod. If fluid flows vertically the source of the stream will flow down.
 
 ## Features
+- Removes infinite water sources (not a good idea with this mod)
 - Fluid source blocks can flow down
 - Pistons can pump fluids
 - Spring blocks generate under naturally generated springs and prevent them from flowing down
