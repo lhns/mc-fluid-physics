@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import scala.Option;
 
 @Mixin(net.minecraft.fluid.FlowableFluid.class)
-public abstract class FlowableFluidMixin {
+public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     //method_15748: isMatchingOrEmpty
     //method_15744: flowSideways
     //method_15740: surroundedStillCount
     //method_15736: canFlowDownInto
 
     @Shadow
-    public abstract boolean isMatchingAndStill(FluidState state);
+    protected abstract boolean isMatchingAndStill(FluidState state);
 
     //canFlowDownInto
     @Inject(at = @At("RETURN"), method = "method_15736", cancellable = true)
@@ -62,9 +62,6 @@ public abstract class FlowableFluidMixin {
     }
 
     @Shadow
-    protected abstract void beforeBreakingBlock(WorldAccess world, BlockPos pos, BlockState state);
-
-    @Shadow
     public abstract FluidState getStill(boolean falling);
 
     @Shadow
@@ -99,7 +96,7 @@ public abstract class FlowableFluidMixin {
                     ((FluidDrainable) sourceState.getBlock()).tryDrainFluid(world, sourcePos.get(), sourceState);
                 } else {
                     if (!sourceState.isAir()) {
-                        this.beforeBreakingBlock(world, sourcePos.get(), sourceState);
+                        this.callBeforeBreakingBlock(world, sourcePos.get(), sourceState);
                     }
 
                     world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
@@ -110,7 +107,7 @@ public abstract class FlowableFluidMixin {
                     ((FluidFillable) state.getBlock()).tryFillWithFluid(world, pos, state, still);
                 } else {
                     if (!state.isAir()) {
-                        this.beforeBreakingBlock(world, pos, state);
+                        this.callBeforeBreakingBlock(world, pos, state);
                     }
 
                     world.setBlockState(pos, still.getBlockState(), 3);

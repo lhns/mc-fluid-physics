@@ -23,7 +23,7 @@ jobs:
       - name: Build with Gradle
         env:
           CI_VERSION: ${{ github.ref }}
-        run: ./gradlew remapJar
+        run: ./gradlew build
       - uses: actions/upload-artifact@v2
         with:
           path: build/libs/*

@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(net.minecraft.fluid.WaterFluid.class)
 public class WaterFluidMixin {
     @Inject(at = @At("HEAD"), method = "isInfinite", cancellable = true)
-    private void isInfinite(CallbackInfoReturnable<Boolean> info) {
+    protected void isInfinite(CallbackInfoReturnable<Boolean> info) {
         info.setReturnValue(false);
     }
 }

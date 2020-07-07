@@ -8,20 +8,17 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import scala.Option;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
 @Mixin(net.minecraft.block.PistonBlock.class)
-public class PistonBlockMixin {
+public abstract class PistonBlockMixin {
     @Inject(at = @At("HEAD"), method = "isMovable", cancellable = true)
     private static void isMovable(BlockState state,
                                   World world,
@@ -34,17 +31,6 @@ public class PistonBlockMixin {
 
         if (world.getFluidState(prevBlockPos).isStill() && state.getFluidState().isEmpty()) {
             info.setReturnValue(false);
-        }
-    }
-
-    private static Method beforeBreakingBlockMethod;
-
-    static {
-        try {
-            beforeBreakingBlockMethod = FlowableFluid.class.getDeclaredMethod("beforeBreakingBlock", WorldAccess.class, BlockPos.class, BlockState.class);
-            beforeBreakingBlockMethod.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
         }
     }
 
@@ -101,11 +87,7 @@ public class PistonBlockMixin {
                             ((FluidDrainable) sourceState.getBlock()).tryDrainFluid(world, sourcePos.get(), sourceState);
                         } else {
                             if (!sourceState.isAir()) {
-                                try {
-                                    beforeBreakingBlockMethod.invoke(fluid, world, sourcePos.get(), sourceState);
-                                } catch (IllegalAccessException | InvocationTargetException e) {
-                                    e.printStackTrace();
-                                }
+                                ((FlowableFluidAccessor) fluid).callBeforeBreakingBlock(world, sourcePos.get(), sourceState);
                             }
 
                             world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
@@ -116,11 +98,7 @@ public class PistonBlockMixin {
                             ((FluidFillable) blockState.getBlock()).tryFillWithFluid(world, currentBlockPos, blockState, still);
                         } else {
                             if (!blockState.isAir()) {
-                                try {
-                                    beforeBreakingBlockMethod.invoke(fluid, world, currentBlockPos, blockState);
-                                } catch (IllegalAccessException | InvocationTargetException e) {
-                                    e.printStackTrace();
-                                }
+                                ((FlowableFluidAccessor) fluid).callBeforeBreakingBlock(world, currentBlockPos, blockState);
                             }
 
                             world.setBlockState(currentBlockPos, still.getBlockState(), 3);

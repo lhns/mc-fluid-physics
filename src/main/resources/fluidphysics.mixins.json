@@ -4,12 +4,11 @@
   "package": "de.lolhens.fluidphysics.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-  ],
-  "client": [
     "WaterColorMixin",
     "WaterFluidMixin",
+    "FlowableFluidAccessor",
     "FlowableFluidMixin",
-    "AbstractBlockMixin",
+    "AbstractBlockStateMixin",
     "PistonBlockMixin",
     "SpringFeatureMixin"
   ],
