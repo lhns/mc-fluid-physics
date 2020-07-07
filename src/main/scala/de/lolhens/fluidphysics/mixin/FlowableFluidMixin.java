@@ -1,5 +1,7 @@
 package de.lolhens.fluidphysics.mixin;
 
+import de.lolhens.fluidphysics.FluidPhysicsMod;
+import de.lolhens.fluidphysics.util.FluidIsInfinite;
 import de.lolhens.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.Fluid;
@@ -8,6 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,7 +38,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                               BlockPos fromPos,
                               BlockState fromState,
                               CallbackInfoReturnable<Boolean> info) {
-        if (info.getReturnValue()) {
+        if (!FluidPhysicsMod.enabledFor(fluid)) return;
+
+        if (FluidPhysicsMod.flowOverSources() && info.getReturnValue()) {
             FluidState fluidState = fromState.getFluidState();
             if (isMatchingAndStill(fluidState)) {
                 info.setReturnValue(false);
@@ -53,12 +58,20 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            FluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
+        if (!FluidPhysicsMod.enabledFor(fluid)) return;
+
         if (flowDirection == Direction.DOWN &&
                 !fluidState.isEmpty() &&
                 fluidBlockState.getFluidState().getFluid().matchesType(fluid) &&
                 !fluidState.isStill()) {
             info.setReturnValue(true);
         }
+    }
+
+
+    @Inject(at = @At("HEAD"), method = "getUpdatedState")
+    protected void getUpdatedState(WorldView world, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> info) {
+        FluidIsInfinite.set(world, pos);
     }
 
     @Shadow
@@ -75,6 +88,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                         FluidState fluidState,
                         CallbackInfo info) {
         FluidState still = getStill(false);
+
+        if (!FluidPhysicsMod.enabledFor(still.getFluid())) return;
+
         BlockPos up = pos.up();
 
         if (direction == Direction.DOWN || world.getFluidState(up).getFluid().matchesType(still.getFluid())) {

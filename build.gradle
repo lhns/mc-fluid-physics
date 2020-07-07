@@ -27,10 +27,14 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-language-scala:0.3.1.+"
 
+    //modApi "me.shedaniel.cloth:config-2:4.5.6"
+    //include "me.shedaniel.cloth:config-2:4.5.6"
+
+    compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+
     // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
     // You may need to force-disable transitiveness on them.
 
-    compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
 }
 
 processResources {

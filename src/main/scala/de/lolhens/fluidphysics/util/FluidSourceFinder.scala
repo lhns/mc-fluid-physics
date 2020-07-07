@@ -84,8 +84,14 @@ object FluidSourceFinder {
       val oppositeDirection = direction.getOpposite
 
       if (!ignoreFirst && fluidState.isStill) {
-        val nextToSpring = (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
-          world.getBlockState(blockPos.offset(direction)).isOf(FluidPhysicsMod.SPRING_BLOCK)
+        val nextToSpring = FluidPhysicsMod.springBlock match {
+          case Some(springBlock) =>
+            (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
+              world.getBlockState(blockPos.offset(direction)).isOf(springBlock)
+            }
+
+          case None =>
+            false
         }
 
         if (!nextToSpring) {
