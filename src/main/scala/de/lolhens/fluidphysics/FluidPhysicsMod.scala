@@ -1,31 +1,41 @@
 package de.lolhens.fluidphysics
 
 import de.lolhens.fluidphysics.block.SpringBlock
+import de.lolhens.fluidphysics.config.Config
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.{Block, Material}
-import net.minecraft.fluid.Fluid
+import net.minecraft.fluid.{Fluid, Fluids}
 import net.minecraft.item.{BlockItem, Item, ItemGroup}
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
 object FluidPhysicsMod extends ModInitializer {
-  private val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
+  val modId: String = "fluidphysics"
+  lazy val config: Config = Config.loadOrCreate(modId)
+
+  val SPRING_BLOCK_IDENTIFIER = new Identifier(modId, "spring")
+  lazy val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
 
   override def onInitialize(): Unit = {
-    Registry.register(Registry.BLOCK, new Identifier("fluidphysics", "spring"), SPRING_BLOCK)
-    Registry.register(Registry.ITEM, new Identifier("fluidphysics", "spring"), new BlockItem(SPRING_BLOCK, new Item.Settings().group(ItemGroup.BUILDING_BLOCKS)))
+    config
+    if (config.springBlock.contains(SPRING_BLOCK_IDENTIFIER)) {
+      Registry.register(Registry.BLOCK, SPRING_BLOCK_IDENTIFIER, SPRING_BLOCK)
+      Registry.register(Registry.ITEM, SPRING_BLOCK_IDENTIFIER, new BlockItem(SPRING_BLOCK, new Item.Settings().group(ItemGroup.BUILDING_BLOCKS)))
+    }
   }
 
-  def debugFluidState: Boolean = false
+  def debugFluidState: Boolean = config.debugFluidState
 
-  def springBlock: Option[Block] = {
-    Some(SPRING_BLOCK)
+  lazy val springBlock: Option[Block] = config.springBlock.map(Registry.BLOCK.get)
+
+  def springAllowsInfiniteWater: Boolean = config.springAllowsInfiniteWater
+
+  def flowOverSources: Boolean = config.flowOverSources
+
+  def enabledFor(fluid: Fluid): Boolean = fluid match {
+    case Fluids.WATER | Fluids.FLOWING_WATER => config.enabledForWater
+    case Fluids.LAVA | Fluids.FLOWING_LAVA => config.enabledForLava
+    case _ => false
   }
-
-  def springAllowsInfiniteWater: Boolean = true
-
-  def flowOverSources: Boolean = true
-
-  def enabledFor(fluid: Fluid): Boolean = true
 }

@@ -16,6 +16,11 @@ if ((System.getenv("CI_VERSION") ?: "").startsWith(tagPrefix)) {
     version = System.getenv("CI_VERSION").drop(tagPrefix.length())
 }
 
+configurations {
+    shadow
+    compile.extendsFrom(shadow)
+}
+
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -27,8 +32,10 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-language-scala:0.3.1.+"
 
-    //modApi "me.shedaniel.cloth:config-2:4.5.6"
-    //include "me.shedaniel.cloth:config-2:4.5.6"
+    shadow "io.circe:circe-parser_2.13:0.13.0"
+    shadow "io.circe:circe-generic_2.13:0.13.0"
+    shadow "io.circe:circe-generic-extras_2.13:0.13.0"
+    shadow "io.circe:circe-config_2.13:0.7.0"
 
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
 
@@ -67,6 +74,9 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 jar {
     from "LICENSE"
+    from {
+        configurations.shadow.collect { it.toString().contains("scala-library") ? null : it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 // configure the maven publication
