@@ -10,7 +10,8 @@
     "FlowableFluidMixin",
     "AbstractBlockStateMixin",
     "PistonBlockMixin",
-    "SpringFeatureMixin"
+    "SpringFeatureMixin",
+    "ThreadedAnvilChunkStorageAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
