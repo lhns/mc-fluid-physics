@@ -1,6 +1,6 @@
 package de.lolhens.fluidphysics.util
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
+import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.fluid.{FlowableFluid, Fluid, FluidState}
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.WorldAccess
@@ -54,8 +54,6 @@ object FluidSourceFinder {
       0
     )
 
-  private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
-
   private def findSourceInternal(world: WorldAccess,
                                  blockPos: BlockPos,
                                  fluidState: FluidState,
@@ -71,11 +69,11 @@ object FluidSourceFinder {
     if (!ignoreFirst && ignoreBlocks.contains(blockPos)) return None
     ignoreBlocks.add(blockPos)
 
-    if (!fluidState.isEmpty && fluidState.getFluid.matchesType(fluid)) {
+    if (!fluidState.isEmpty && fluid.matchesType(fluidState.getFluid)) {
       if (direction != Direction.DOWN) {
         val up = blockPos.up()
         val upFluidState = world.getFluidState(up)
-        if (!upFluidState.isEmpty && upFluidState.getFluid.matchesType(fluid)) {
+        if (!upFluidState.isEmpty && fluid.matchesType(upFluidState.getFluid)) {
           val sourcePos = findSourceInternal(world, up, upFluidState, fluid, Direction.UP, ignoreBlocks, ignoreFirst = false, ignoreLevel = false, maxIterations, iteration + 1)
           if (sourcePos.isDefined) return sourcePos
         }

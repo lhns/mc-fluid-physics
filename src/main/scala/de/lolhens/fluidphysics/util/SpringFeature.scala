@@ -2,18 +2,14 @@ package de.lolhens.fluidphysics.util
 
 import java.util.Random
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
+import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.ServerWorldAccess
 import net.minecraft.world.gen.StructureAccessor
 import net.minecraft.world.gen.chunk.ChunkGenerator
 import net.minecraft.world.gen.feature.SpringFeatureConfig
 
-import scala.jdk.CollectionConverters._
-
 object SpringFeature {
-  private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
-
   def generate(world: ServerWorldAccess,
                structureAccessor: StructureAccessor,
                chunkGenerator: ChunkGenerator,
