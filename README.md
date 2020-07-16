@@ -16,6 +16,9 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 ## Videos
 [![](https://img.youtube.com/vi/ruu0PwRRzL8/0.jpg)](https://www.youtube.com/watch?v=ruu0PwRRzL8)
 
+## Known issues
+- Under some circumstances fluids can stop flowing (This is why in the video I have the glass block slowing down the water flowing into the sandstone tank)
+
 ## Older versions
 These are the previous iterations of this mod:
 - https://github.com/LolHens/Minechanics-water-1.7.10
