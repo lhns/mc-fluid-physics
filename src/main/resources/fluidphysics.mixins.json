@@ -4,13 +4,14 @@
   "package": "de.lolhens.fluidphysics.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "WaterColorMixin",
-    "WaterFluidMixin",
+    "AbstractBlockStateMixin",
+    "BiomeColorsMixin",
     "FlowableFluidAccessor",
     "FlowableFluidMixin",
-    "AbstractBlockStateMixin",
     "PistonBlockMixin",
-    "SpringFeatureMixin"
+    "SpringFeatureMixin",
+    "ThreadedAnvilChunkStorageAccessor",
+    "WaterFluidMixin"
   ],
   "injectors": {
     "defaultRequire": 1
