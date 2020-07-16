@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object FluidSourceFinder {
-  private val defaultMaxIterations = 255
+  private def defaultMaxIterations: Int = FluidPhysicsMod.config.findSourceMaxIterations
 
   def setOf(blockPos: java.util.Collection[BlockPos]): mutable.Set[BlockPos] = blockPos.asScala.to(mutable.Set)
 
@@ -82,7 +82,7 @@ object FluidSourceFinder {
       val oppositeDirection = direction.getOpposite
 
       if (!ignoreFirst && fluidState.isStill) {
-        val nextToSpring = FluidPhysicsMod.springBlock match {
+        val nextToSpring = FluidPhysicsMod.config.spring.map(_.getBlock) match {
           case Some(springBlock) =>
             (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
               world.getBlockState(blockPos.offset(direction)).isOf(springBlock)

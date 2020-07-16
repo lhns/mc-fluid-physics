@@ -38,9 +38,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                               BlockPos fromPos,
                               BlockState fromState,
                               CallbackInfoReturnable<Boolean> info) {
-        if (!FluidPhysicsMod.enabledFor(fluid)) return;
-
-        if (FluidPhysicsMod.flowOverSources() && info.getReturnValue()) {
+        if (info.getReturnValue() &&
+                FluidPhysicsMod.config().enabledFor(fluid) &&
+                FluidPhysicsMod.config().flowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
             if (isMatchingAndStill(fluidState)) {
                 info.setReturnValue(false);
@@ -58,11 +58,10 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            FluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
-        if (!FluidPhysicsMod.enabledFor(fluid)) return;
+        if (!FluidPhysicsMod.config().enabledFor(fluid)) return;
 
         if (flowDirection == Direction.DOWN &&
-                !fluidState.isEmpty() &&
-                fluidBlockState.getFluidState().getFluid().matchesType(fluid) &&
+                fluid.matchesType(fluidBlockState.getFluidState().getFluid()) &&
                 !fluidState.isStill()) {
             info.setReturnValue(true);
         }
@@ -89,7 +88,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                         CallbackInfo info) {
         FluidState still = getStill(false);
 
-        if (!FluidPhysicsMod.enabledFor(still.getFluid())) return;
+        if (!FluidPhysicsMod.config().enabledFor(still.getFluid())) return;
 
         BlockPos up = pos.up();
 

@@ -16,7 +16,7 @@ object SpringFeature {
                random: Random,
                blockPos: BlockPos,
                springFeatureConfig: SpringFeatureConfig): Unit =
-    FluidPhysicsMod.springBlock match {
+    FluidPhysicsMod.config.spring.map(_.getBlock) match {
       case Some(springBlock) =>
         def isAir(direction: Direction): Boolean =
           world.isAir(blockPos.offset(direction))

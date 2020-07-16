@@ -23,11 +23,11 @@ object FluidIsInfinite {
   private val horizontal: Array[Direction] = Direction.Type.HORIZONTAL.iterator().asScala.toArray
 
   def isInfinite(fluid: Fluid): Boolean =
-    if (FluidPhysicsMod.enabledFor(fluid)) {
-      val nextToSpring = FluidPhysicsMod.springBlock match {
-        case Some(springBlock) if FluidPhysicsMod.springAllowsInfiniteWater =>
+    if (FluidPhysicsMod.config.enabledFor(fluid)) {
+      val nextToSpring = FluidPhysicsMod.config.spring match {
+        case Some(spring) if spring.allowInfiniteWater =>
           (Direction.DOWN +: horizontal).exists { direction =>
-            world.getBlockState(pos.offset(direction)).isOf(springBlock)
+            world.getBlockState(pos.offset(direction)).isOf(spring.getBlock)
           }
 
         case _ =>
