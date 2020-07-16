@@ -2,66 +2,32 @@ package de.lolhens.fluidphysics.config
 
 import java.nio.file.{Files, Path}
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
-import de.lolhens.fluidphysics.config.Config.{RainRefill, Spring}
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.auto._
+import de.lolhens.fluidphysics.config.Config.{configPath, spaces2}
+import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
-import io.circe.{Decoder, Encoder, Printer}
+import io.circe.{Codec, Decoder, Encoder, Printer}
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.block.Block
-import net.minecraft.fluid.{Fluid, Fluids}
 import net.minecraft.util.Identifier
-import net.minecraft.util.registry.Registry
 
 import scala.jdk.CollectionConverters._
 
-case class Config(fluidWhitelist: Seq[Identifier] = Seq(Fluids.WATER, Fluids.LAVA).map(Registry.FLUID.getId),
-                  findSourceMaxIterations: Int = 255,
-                  flowOverSources: Boolean = true,
-                  debugFluidState: Boolean = false,
-                  spring: Option[Spring] = Some(Spring()),
-                  rainRefill: Option[RainRefill] = Some(RainRefill())) {
-  lazy val getFluidWhitelist: Seq[Fluid] = fluidWhitelist.map(Registry.FLUID.get)
+trait Config[Self] extends Config.Implicits {
+  def default: Self
 
-  def enabledFor(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.matchesType(fluid))
-}
+  protected def codec: Codec[Self]
 
-object Config {
-  val default: Config = Config()
+  protected final def makeCodec(implicit decoder: Decoder[Self], encoder: Encoder[Self]): Codec[Self] =
+    Codec.from(decoder, encoder)
 
-  case class Spring(block: Identifier = FluidPhysicsMod.SPRING_BLOCK_IDENTIFIER,
-                    updateBlocksInWorld: Boolean = false,
-                    allowInfiniteWater: Boolean = true) {
-    lazy val getBlock: Block = Registry.BLOCK.get(block)
-  }
+  private implicit lazy val implicitCodec: Codec[Self] = codec
 
-  case class RainRefill(probability: Double = 0.2,
-                        fluidWhitelist: Seq[Identifier] = Seq(Fluids.WATER).map(Registry.FLUID.getId)) {
-    lazy val getFluidWhitelist: Seq[Fluid] = fluidWhitelist.map(Registry.FLUID.get)
+  private def loadFromPath(path: Path): Self =
+    io.circe.config.parser.decodeFile[Self](path.toFile).toTry.get
 
-    def canRefillFluid(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.matchesType(fluid))
-  }
-
-
-  def configDirectory: Path = FabricLoader.getInstance().getConfigDirectory.toPath
-
-  def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
-
-  private implicit val customConfig: Configuration = Configuration.default.withDefaults
-
-  implicit val identifierEncoder: Encoder[Identifier] = Encoder.encodeString.contramap[Identifier](_.toString)
-  implicit val identifierDecoder: Decoder[Identifier] = Decoder.decodeString.map(Identifier.tryParse)
-
-  private def loadFromPath(path: Path): Config =
-    io.circe.config.parser.decodeFile[Config](path.toFile).toTry.get
-
-  private val spaces2 = Printer.spaces2.copy(colonLeft = "")
-
-  private def saveToPath(path: Path, config: Config): Unit =
+  private def saveToPath(path: Path, config: Self): Unit =
     Files.write(path, List(config.asJson.printWith(spaces2)).asJava)
 
-  def loadOrCreate(modId: String): Config = {
+  def loadOrCreate(modId: String): Self = {
     val path = configPath(modId)
     if (Files.notExists(path)) {
       val config = default
@@ -71,4 +37,31 @@ object Config {
       loadFromPath(path)
     }
   }
+}
+
+object Config {
+  def configDirectory: Path = FabricLoader.getInstance().getConfigDirectory.toPath
+
+  def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
+
+  private val spaces2 = Printer.spaces2.copy(colonLeft = "")
+
+  trait Implicits extends AutoDerivation {
+
+    import Implicits._
+
+    protected implicit def implicitCustomConfig: Configuration = customConfig
+
+    implicit def implicitIdentifierCodec: Codec[Identifier] = identifierCodec
+  }
+
+  object Implicits {
+    private val customConfig: Configuration = Configuration.default.withDefaults
+
+    private val identifierCodec: Codec[Identifier] = Codec.from(
+      Decoder.decodeString.map(Identifier.tryParse),
+      Encoder.encodeString.contramap[Identifier](_.toString)
+    )
+  }
+
 }

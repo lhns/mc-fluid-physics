@@ -1,6 +1,6 @@
 package de.lolhens.fluidphysics.util
 
-import de.lolhens.fluidphysics.config.Config.RainRefill
+import de.lolhens.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
 import de.lolhens.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -90,7 +90,7 @@ object RainRefill {
 
   private def refillInChunk(world: ServerWorld,
                             chunkPos: ChunkPos,
-                            rainRefillOptions: RainRefill): Unit = {
+                            rainRefillOptions: RainRefillConfig): Unit = {
     lazy val chunk: WorldChunk = world.getChunk(chunkPos.x, chunkPos.z)
 
     runWithProbability(rainRefillOptions.probability) {
