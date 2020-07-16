@@ -3,7 +3,7 @@
   "id": "fluidphysics",
   "version": "${version}",
   "name": "Fluid Physics",
-  "description": "This mod makes fluids flow but preserves most of the vanilla fluid physics.",
+  "description": "This mod blends together vanilla fluid mechanics with something a little more realistic plus some small additions.",
   "authors": [
     "LolHens"
   ],
