@@ -1,6 +1,6 @@
 package de.lolhens.fluidphysics.util
 
-import de.lolhens.fluidphysics.FluidPhysicsMod.RainRefillOptions
+import de.lolhens.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
 import de.lolhens.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -35,7 +35,7 @@ object RainRefill {
   }
 
   def refillInLoadedChunks(world: ServerWorld): Int = {
-    if (world.isRaining) FluidPhysicsMod.rainRefill.foreach { rainRefillOptions =>
+    if (world.isRaining) FluidPhysicsMod.config.rainRefill.foreach { rainRefillOptions =>
       val startTime = System.currentTimeMillis()
       val chunks = loadedChunks(world)
       chunks.foreach { chunkPos =>
@@ -90,17 +90,16 @@ object RainRefill {
 
   private def refillInChunk(world: ServerWorld,
                             chunkPos: ChunkPos,
-                            rainRefillOptions: RainRefillOptions): Unit = {
+                            rainRefillOptions: RainRefillConfig): Unit = {
     lazy val chunk: WorldChunk = world.getChunk(chunkPos.x, chunkPos.z)
 
     runWithProbability(rainRefillOptions.probability) {
       val blockPos: BlockPos = getHighestBlock(chunk, Random.nextInt(16), Random.nextInt(16)).down()
-      //if (world.getBlockState(blockPos).isOf(Blocks.BLUE_WOOL) || world.getBlockState(blockPos).isOf(Blocks.YELLOW_WOOL)) world.setBlockState(blockPos, Blocks.AIR.getDefaultState)
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState
       fluidState.getFluid match {
         case fluid: FlowableFluid if !fluidState.isEmpty && fluidState.getBlockState.isOf(blockState.getBlock) =>
-          if (rainRefillOptions.refillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid)) {
+          if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid)) {
             val still = fluid.getStill(false)
             world.setBlockState(blockPos, still.getBlockState)
           }
