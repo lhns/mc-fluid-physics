@@ -1,4 +1,7 @@
 # Fluid Physics (Minecraft Mod)
+[![Release Notes](https://img.shields.io/github/release/LolHens/mc-fluid-physics.svg?maxAge=3600)](https://github.com/LolHens/mc-fluid-physics/releases/latest)
+[![Apache License 2.0](https://img.shields.io/github/license/LolHens/mc-fluid-physics.svg?maxAge=3600)](https://www.apache.org/licenses/LICENSE-2.0)
+
 This mod blends together vanilla fluid mechanics with something a little more realistic plus some small additions.
 Fluids flowing horizontally will not be affected by this mod. Fluids flowing down will take the source with them.
 
