@@ -29,13 +29,13 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
     registry.get(id)
   }
 
-  case class SpringConfig(block: Identifier = FluidPhysicsMod.SPRING_BLOCK_IDENTIFIER,
+  case class SpringConfig(block: Identifier = FluidPhysicsMod.SPRING_BLOCK_ID,
                           updateBlocksInWorld: Boolean = false,
                           allowInfiniteWater: Boolean = true) {
     lazy val getBlock: Block = registryGet(Registry.BLOCK, block)
 
     def shouldUpdateBlocksInWorld: Boolean =
-      block != FluidPhysicsMod.SPRING_BLOCK_IDENTIFIER && updateBlocksInWorld
+      block != FluidPhysicsMod.SPRING_BLOCK_ID && updateBlocksInWorld
   }
 
   case class RainRefillConfig(probability: Double = 0.2,

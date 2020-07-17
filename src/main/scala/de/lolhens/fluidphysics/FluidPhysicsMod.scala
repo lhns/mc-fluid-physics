@@ -22,14 +22,14 @@ object FluidPhysicsMod extends ModInitializer {
 
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(metadata.getId)
 
-  val SPRING_BLOCK_IDENTIFIER = new Identifier(metadata.getId, "spring")
-  private lazy val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
+  val SPRING_BLOCK_ID = new Identifier(metadata.getId, "spring")
+  val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
 
   override def onInitialize(): Unit = {
     config
 
-    Registry.register(Registry.BLOCK, SPRING_BLOCK_IDENTIFIER, SPRING_BLOCK)
-    Registry.register(Registry.ITEM, SPRING_BLOCK_IDENTIFIER, new BlockItem(SPRING_BLOCK, new Item.Settings().group(ItemGroup.BUILDING_BLOCKS)))
+    Registry.register(Registry.BLOCK, SPRING_BLOCK_ID, SPRING_BLOCK)
+    Registry.register(Registry.ITEM, SPRING_BLOCK_ID, new BlockItem(SPRING_BLOCK, new Item.Settings().group(ItemGroup.BUILDING_BLOCKS)))
 
     RainRefill.init()
   }
