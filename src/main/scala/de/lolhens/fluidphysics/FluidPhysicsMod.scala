@@ -5,16 +5,24 @@ import de.lolhens.fluidphysics.config.FluidPhysicsConfig
 import de.lolhens.fluidphysics.util.RainRefill
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
+import net.fabricmc.loader.api.FabricLoader
+import net.fabricmc.loader.api.metadata.ModMetadata
 import net.minecraft.block.{Block, Material}
 import net.minecraft.item.{BlockItem, Item, ItemGroup}
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
-object FluidPhysicsMod extends ModInitializer {
-  val modId: String = "fluidphysics"
-  lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(modId)
+import scala.jdk.CollectionConverters._
 
-  val SPRING_BLOCK_IDENTIFIER = new Identifier(modId, "spring")
+object FluidPhysicsMod extends ModInitializer {
+  val metadata: ModMetadata = {
+    FabricLoader.getInstance().getEntrypointContainers("main", classOf[ModInitializer])
+      .iterator().asScala.find(_.getEntrypoint == this).get.getProvider.getMetadata
+  }
+
+  lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(metadata.getId)
+
+  val SPRING_BLOCK_IDENTIFIER = new Identifier(metadata.getId, "spring")
   private lazy val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
 
   override def onInitialize(): Unit = {
