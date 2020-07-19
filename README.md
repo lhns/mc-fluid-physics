@@ -28,7 +28,7 @@ These are the previous iterations of this mod:
 - https://github.com/LolHens/Minechanics
 
 ## Similar mods
-If you are looking for more realism have a look at [Dihydrogen Monoxide Reloaded](https://github.com/CoolMineman/Dihydrogen-Monoxide-Reloaded)
+If you are looking for more realism have a look at [Dihydrogen Monoxide Reloaded by CoolMineman](https://github.com/CoolMineman/Dihydrogen-Monoxide-Reloaded)
 
 ## License
 This project uses the Apache 2.0 License. See the file called LICENSE.
