@@ -10,7 +10,7 @@ import net.minecraft.util.registry.Registry
 
 case class FluidPhysicsConfig(fluidWhitelist: Seq[Identifier] = Seq(Fluids.WATER, Fluids.LAVA).map(Registry.FLUID.getId),
                               findSourceMaxIterations: Int = 255,
-                              biomeDependentFluidInfinity: Boolean = true,
+                              biomeDependentFluidInfinity: Boolean = false,
                               flowOverSources: Boolean = true,
                               debugFluidState: Boolean = false,
                               spring: Option[SpringConfig] = Some(SpringConfig()),
