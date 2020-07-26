@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters._
 object FluidPhysicsMod extends ModInitializer {
   val metadata: ModMetadata = {
     FabricLoader.getInstance().getEntrypointContainers("main", classOf[ModInitializer])
-      .iterator().asScala.find(_.getEntrypoint == this).get.getProvider.getMetadata
+      .iterator().asScala.find(_.getEntrypoint eq this).get.getProvider.getMetadata
   }
 
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(metadata.getId)
