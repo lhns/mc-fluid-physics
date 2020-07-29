@@ -24,6 +24,12 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 ## Known issues
 - Under some circumstances fluids can stop flowing (This is why in the video I have the glass block slowing down the water flowing into the sandstone tank)
 
+## Requirements
+### [Fabric](https://fabricmc.net/)
+[<img src="https://fabricmc.net/assets/logo.png" width="32"> Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
+
+[<img src="https://user-images.githubusercontent.com/1524059/88789314-e5dd3300-d196-11ea-99dc-2399393ef409.png" width="32"> Fabric Language Scala](https://www.curseforge.com/minecraft/mc-mods/fabric-language-scala)
+
 ## Older versions
 These are the previous iterations of this mod:
 - https://github.com/LolHens/Minechanics-water-1.7.10
