@@ -1,8 +1,8 @@
-package de.lolhens.fluidphysics.util
+package de.lolhens.minecraft.fluidphysics.util
 
-import de.lolhens.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
-import de.lolhens.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
-import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
+import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
+import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
+import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.{FlowableFluid, FluidState}

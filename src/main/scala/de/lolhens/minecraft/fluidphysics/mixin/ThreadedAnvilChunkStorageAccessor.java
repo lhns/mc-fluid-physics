@@ -1,4 +1,4 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
 import net.minecraft.server.world.ChunkHolder;
 import org.spongepowered.asm.mixin.Mixin;

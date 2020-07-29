@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.util.SpringFeature;
+import de.lolhens.minecraft.fluidphysics.util.SpringFeature;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.gen.StructureAccessor;

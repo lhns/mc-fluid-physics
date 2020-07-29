@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.FluidPhysicsMod;
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.client.color.world.BiomeColors;

@@ -1,8 +1,8 @@
-package de.lolhens.fluidphysics.util
+package de.lolhens.minecraft.fluidphysics.util
 
 import java.util.Random
 
-import de.lolhens.fluidphysics.{FluidPhysicsMod, horizontal}
+import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.ServerWorldAccess
 import net.minecraft.world.gen.StructureAccessor

@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.util.FluidIsInfinite;
+import de.lolhens.minecraft.fluidphysics.util.FluidIsInfinite;
 import net.minecraft.fluid.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

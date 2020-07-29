@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.block
+package de.lolhens.minecraft.fluidphysics.block
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import net.minecraft.block.AbstractBlock.Settings
 import net.minecraft.block.Block
 

@@ -1,7 +1,7 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.FluidPhysicsMod;
-import de.lolhens.fluidphysics.util.FluidSourceFinder;
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
+import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.block.piston.PistonHandler;
 import net.minecraft.fluid.FlowableFluid;

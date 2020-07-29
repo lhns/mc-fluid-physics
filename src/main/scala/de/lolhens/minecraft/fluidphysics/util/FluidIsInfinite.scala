@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.util
+package de.lolhens.minecraft.fluidphysics.util
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import net.minecraft.fluid.Fluid
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.WorldView
@@ -33,13 +33,15 @@ object FluidIsInfinite {
         case _ =>
           false
       }
+
       val isBiome =
-        if (FluidPhysicsMod.config.biomeDependentFluidInfinity){
-          val biomeCategory = world.getBiome(pos).getCategory();
-          biomeCategory == Biome.Category.OCEAN ||  biomeCategory ==Biome.Category.RIVER
+        if (FluidPhysicsMod.config.biomeDependentFluidInfinity) {
+          val biomeCategory = world.getBiome(pos).getCategory
+          biomeCategory == Biome.Category.OCEAN || biomeCategory == Biome.Category.RIVER
         } else {
           false
         }
+
       nextToSpring || isBiome
     } else {
       true

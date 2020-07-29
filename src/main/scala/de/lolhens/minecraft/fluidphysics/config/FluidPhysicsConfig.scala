@@ -1,7 +1,7 @@
-package de.lolhens.fluidphysics.config
+package de.lolhens.minecraft.fluidphysics.config
 
-import de.lolhens.fluidphysics.FluidPhysicsMod
-import de.lolhens.fluidphysics.config.FluidPhysicsConfig.{RainRefillConfig, SpringConfig, registryGet}
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
+import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.{RainRefillConfig, SpringConfig, registryGet}
 import io.circe.Codec
 import net.minecraft.block.Block
 import net.minecraft.fluid.{Fluid, Fluids}

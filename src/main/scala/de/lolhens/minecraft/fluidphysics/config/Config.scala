@@ -1,8 +1,8 @@
-package de.lolhens.fluidphysics.config
+package de.lolhens.minecraft.fluidphysics.config
 
 import java.nio.file.{Files, Path}
 
-import de.lolhens.fluidphysics.config.Config.{configPath, spaces2}
+import de.lolhens.minecraft.fluidphysics.config.Config.{configPath, spaces2}
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
 import io.circe.{Codec, Decoder, Encoder, Printer}

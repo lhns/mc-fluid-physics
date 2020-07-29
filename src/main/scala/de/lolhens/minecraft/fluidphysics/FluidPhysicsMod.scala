@@ -1,8 +1,8 @@
-package de.lolhens.fluidphysics
+package de.lolhens.minecraft.fluidphysics
 
-import de.lolhens.fluidphysics.block.SpringBlock
-import de.lolhens.fluidphysics.config.FluidPhysicsConfig
-import de.lolhens.fluidphysics.util.RainRefill
+import de.lolhens.minecraft.fluidphysics.block.SpringBlock
+import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig
+import de.lolhens.minecraft.fluidphysics.util.RainRefill
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.loader.api.FabricLoader

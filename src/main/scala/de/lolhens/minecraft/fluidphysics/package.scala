@@ -1,4 +1,4 @@
-package de.lolhens
+package de.lolhens.minecraft
 
 import net.minecraft.util.math.Direction
 

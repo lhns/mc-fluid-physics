@@ -1,6 +1,6 @@
-package de.lolhens.fluidphysics.mixin;
+package de.lolhens.minecraft.fluidphysics.mixin;
 
-import de.lolhens.fluidphysics.FluidPhysicsMod;
+import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.fluid.FluidState;
