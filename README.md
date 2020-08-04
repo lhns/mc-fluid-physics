@@ -13,6 +13,7 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 - Pistons can pump fluids
 - Spring blocks generate under naturally generated springs and prevent them from flowing down
 - Rain refills lakes and oceans (similar to infinite water sources in vanilla)
+- Works with vanilla clients (you have to set the config option spring/block to a vanilla block like 'mossy_cobblestone')
 
 ## Screenshots
 ![](https://raw.githubusercontent.com/LolHens/mc-fluid-physics/master/screenshots/2020-07-07_00.22.08.png)
