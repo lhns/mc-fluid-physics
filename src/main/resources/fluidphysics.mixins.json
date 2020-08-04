@@ -5,13 +5,15 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "AbstractBlockStateMixin",
-    "BiomeColorsMixin",
     "FlowableFluidAccessor",
     "FlowableFluidMixin",
     "PistonBlockMixin",
     "SpringFeatureMixin",
     "ThreadedAnvilChunkStorageAccessor",
     "WaterFluidMixin"
+  ],
+  "client": [
+    "BiomeColorsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
