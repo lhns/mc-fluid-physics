@@ -1,8 +1,8 @@
 package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
-import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
+import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.{FlowableFluid, FluidState}
@@ -21,7 +21,7 @@ object RainRefill {
     }
   }
 
-  private lazy val maxLevel = 33 + ChunkStatus.getTargetGenerationRadius(ChunkStatus.FULL)
+  private lazy val maxLevel = 33 + ChunkStatus.getDistanceFromFull(ChunkStatus.FULL)
 
   private def loadedChunks(serverWorld: ServerWorld): Seq[ChunkPos] = {
     val chunkManager: ServerChunkManager = serverWorld.getChunkManager

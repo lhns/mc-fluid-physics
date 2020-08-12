@@ -71,7 +71,7 @@ object FluidSourceFinder {
 
     if (!fluidState.isEmpty && fluid.matchesType(fluidState.getFluid)) {
       if (direction != Direction.DOWN) {
-        val up = blockPos.up()
+        val up: BlockPos = blockPos.up()
         val upFluidState = world.getFluidState(up)
         if (!upFluidState.isEmpty && fluid.matchesType(upFluidState.getFluid)) {
           val sourcePos = findSourceInternal(world, up, upFluidState, fluid, Direction.UP, ignoreBlocks, ignoreFirst = false, ignoreLevel = false, maxIterations, iteration + 1)
