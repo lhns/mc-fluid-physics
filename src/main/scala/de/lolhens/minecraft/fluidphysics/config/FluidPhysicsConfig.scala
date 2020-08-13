@@ -25,10 +25,9 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
 
   override protected def codec: Codec[FluidPhysicsConfig] = makeCodec
 
-  private def registryGet[A](registry: Registry[A], id: Identifier): A = {
-    require(registry.containsId(id), "Registry does not contain identifier: " + id)
-    registry.get(id)
-  }
+  private def registryGet[A](registry: Registry[A], id: Identifier): A =
+    registry.getOrEmpty(id)
+      .orElseThrow(() => new IllegalArgumentException("Registry does not contain identifier: " + id))
 
   case class SpringConfig(block: Identifier = FluidPhysicsMod.SPRING_BLOCK_ID,
                           updateBlocksInWorld: Boolean = false,
