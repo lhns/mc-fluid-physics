@@ -1,15 +1,15 @@
 package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
-import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
+import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.{FlowableFluid, FluidState}
 import net.minecraft.server.world.{ServerChunkManager, ServerWorld}
 import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.chunk.{ChunkStatus, WorldChunk}
-import net.minecraft.world.{Heightmap, WorldView}
+import net.minecraft.world.{Heightmap, World}
 
 import scala.jdk.CollectionConverters._
 import scala.util.Random
@@ -51,12 +51,13 @@ object RainRefill {
     new BlockPos(chunk.getPos.getStartX + chunkX, y, chunk.getPos.getStartZ + chunkZ)
   }
 
-  private def shouldRefill(world: WorldView,
+  private def shouldRefill(world: World,
                            blockPos: BlockPos,
                            blockState: BlockState,
                            fluidState: FluidState,
-                           fluid: FlowableFluid): Boolean = {
-    if (!fluidState.isStill) {
+                           fluid: FlowableFluid,
+                           rainRefillOptions: RainRefillConfig): Boolean = {
+    if (!fluidState.isStill && rainRefillOptions.canRainAt(world, blockPos)) {
       def onlySources[A](iterable: IterableOnce[A])(pos: A => BlockPos): List[A] =
         iterable.iterator.filter { e =>
           val fluidState = world.getFluidState(pos(e))
@@ -99,7 +100,7 @@ object RainRefill {
       val fluidState = blockState.getFluidState
       fluidState.getFluid match {
         case fluid: FlowableFluid if !fluidState.isEmpty && fluidState.getBlockState.isOf(blockState.getBlock) =>
-          if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid)) {
+          if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid, rainRefillOptions)) {
             val still = fluid.getStill(false)
             world.setBlockState(blockPos, still.getBlockState)
           }
