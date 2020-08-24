@@ -27,7 +27,7 @@ if ((System.getenv("CI_VERSION") ?: "").startsWith(tagPrefix)) {
     version = System.getenv("CI_VERSION").drop(tagPrefix.length()).takeWhile { it != '+' }
 }
 
-version = version + "+" + project.minecraft_version
+version = version + "+fabric-" + project.minecraft_version
 
 configurations {
     shadow
