@@ -1,10 +1,4 @@
-pluginManagement {
-    repositories {
-        jcenter()
-        maven {
-            name = 'Fabric'
-            url = 'https://maven.fabricmc.net/'
-        }
-        gradlePluginPortal()
-    }
-}
+rootProject.name = 'mc-fluid-physics'
+
+include ':fabric-1.16.1'
+include ':fabric-1.16.2'
