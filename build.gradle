@@ -1,0 +1,4 @@
+tasks.register('build') {
+    dependsOn gradle.includedBuild('fabric-1.16.1').task(':build')
+    dependsOn gradle.includedBuild('fabric-1.16.2').task(':build')
+}
