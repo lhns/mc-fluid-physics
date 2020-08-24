@@ -1,4 +1,4 @@
 rootProject.name = 'mc-fluid-physics'
 
-includeBuild 'fabric-1.16.1'
-includeBuild 'fabric-1.16.2'
+include ':fabric-1.16.1'
+include ':fabric-1.16.2'
