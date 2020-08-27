@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.lolhens.minecraft.fluidphysics.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ThreadedAnvilChunkStorageAccessor"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

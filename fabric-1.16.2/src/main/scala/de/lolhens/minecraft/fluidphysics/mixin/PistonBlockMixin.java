@@ -18,7 +18,7 @@ import scala.Option;
 import java.util.HashSet;
 import java.util.Set;
 
-@Mixin(net.minecraft.block.PistonBlock.class)
+@Mixin(PistonBlock.class)
 public abstract class PistonBlockMixin {
     @Inject(at = @At("HEAD"), method = "isMovable", cancellable = true)
     private static void isMovable(BlockState state,

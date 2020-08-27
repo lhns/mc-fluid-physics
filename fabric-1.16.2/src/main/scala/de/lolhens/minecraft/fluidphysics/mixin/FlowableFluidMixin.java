@@ -4,6 +4,7 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidIsInfinite;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
+import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -19,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import scala.Option;
 
-@Mixin(net.minecraft.fluid.FlowableFluid.class)
+@Mixin(FlowableFluid.class)
 public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     //method_15748: isMatchingOrEmpty
     //method_15744: flowSideways

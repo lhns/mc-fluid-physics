@@ -1,5 +1,6 @@
 package de.lolhens.minecraft.fluidphysics
 
+import de.lolhens.minecraft.fluidphysics.block.SpringBlock
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig
 import net.minecraft.block.material.Material
 import net.minecraft.block.{AbstractBlock, Block}
@@ -20,7 +21,7 @@ object FluidPhysicsMod {
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(container.getModId)
 
   val SPRING_BLOCK_ID = new ResourceLocation(container.getModId, "spring")
-  val SPRING_BLOCK: Block = new Block(AbstractBlock.Properties.create(Material.ROCK).func_235861_h_().hardnessAndResistance(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID) //new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
+  val SPRING_BLOCK: Block = new SpringBlock(AbstractBlock.Properties.create(Material.ROCK).func_235861_h_().hardnessAndResistance(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID) //new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
 
   FMLJavaModLoadingContext.get.getModEventBus.addListener { _: FMLCommonSetupEvent =>
     config

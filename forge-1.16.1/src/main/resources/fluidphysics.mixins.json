@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.lolhens.minecraft.fluidphysics.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ThreadedAnvilChunkStorageAccessor"
+  ],
+  "client": [
+    "BiomeColorsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

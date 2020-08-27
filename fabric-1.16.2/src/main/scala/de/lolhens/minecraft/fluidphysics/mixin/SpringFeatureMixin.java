@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Random;
 
-@Mixin(net.minecraft.world.gen.feature.SpringFeature.class)
+@Mixin(SpringFeature.class)
 public class SpringFeatureMixin {
     @Inject(at = @At("RETURN"), method = "generate", cancellable = true)
     public void generate(StructureWorldAccess structureWorldAccess,
