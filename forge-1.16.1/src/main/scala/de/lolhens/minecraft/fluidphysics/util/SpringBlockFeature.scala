@@ -6,7 +6,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorld
 import net.minecraft.world.gen.feature.LiquidsConfig
 
-object SpringFeature {
+object SpringBlockFeature {
   def generate(world: IWorld,
                blockPos: BlockPos,
                springFeatureConfig: LiquidsConfig): Unit =

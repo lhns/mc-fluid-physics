@@ -2,11 +2,11 @@ package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.util.math.{BlockPos, Direction}
-import net.minecraft.world.WorldAccess
+import net.minecraft.world.ServerWorldAccess
 import net.minecraft.world.gen.feature.SpringFeatureConfig
 
-object SpringFeature {
-  def generate(world: WorldAccess,
+object SpringBlockFeature {
+  def generate(world: ServerWorldAccess,
                blockPos: BlockPos,
                springFeatureConfig: SpringFeatureConfig): Unit =
     FluidPhysicsMod.config.spring.map(_.getBlock) match {

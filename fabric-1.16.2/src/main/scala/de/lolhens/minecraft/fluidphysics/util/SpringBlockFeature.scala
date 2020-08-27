@@ -1,19 +1,12 @@
 package de.lolhens.minecraft.fluidphysics.util
 
-import java.util.Random
-
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.util.math.{BlockPos, Direction}
-import net.minecraft.world.ServerWorldAccess
-import net.minecraft.world.gen.StructureAccessor
-import net.minecraft.world.gen.chunk.ChunkGenerator
+import net.minecraft.world.WorldAccess
 import net.minecraft.world.gen.feature.SpringFeatureConfig
 
-object SpringFeature {
-  def generate(world: ServerWorldAccess,
-               structureAccessor: StructureAccessor,
-               chunkGenerator: ChunkGenerator,
-               random: Random,
+object SpringBlockFeature {
+  def generate(world: WorldAccess,
                blockPos: BlockPos,
                springFeatureConfig: SpringFeatureConfig): Unit =
     FluidPhysicsMod.config.spring.map(_.getBlock) match {
