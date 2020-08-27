@@ -6,8 +6,8 @@ import de.lolhens.minecraft.fluidphysics.config.Config.{configPath, spaces2}
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
 import io.circe.{Codec, Decoder, Encoder, Printer}
-import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.util.Identifier
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.loading.FMLPaths
 
 import scala.jdk.CollectionConverters._
 
@@ -40,7 +40,7 @@ trait Config[Self] extends Config.Implicits {
 }
 
 object Config {
-  def configDirectory: Path = FabricLoader.getInstance().getConfigDir
+  def configDirectory: Path = FMLPaths.CONFIGDIR.get()
 
   def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
 
@@ -52,15 +52,15 @@ object Config {
 
     protected implicit def implicitCustomConfig: Configuration = customConfig
 
-    implicit def implicitIdentifierCodec: Codec[Identifier] = identifierCodec
+    implicit def implicitIdentifierCodec: Codec[ResourceLocation] = identifierCodec
   }
 
   object Implicits {
     private val customConfig: Configuration = Configuration.default.withDefaults
 
-    private val identifierCodec: Codec[Identifier] = Codec.from(
-      Decoder.decodeString.map(Identifier.tryParse),
-      Encoder.encodeString.contramap[Identifier](_.toString)
+    private val identifierCodec: Codec[ResourceLocation] = Codec.from(
+      Decoder.decodeString.map(ResourceLocation.tryCreate),
+      Encoder.encodeString.contramap[ResourceLocation](_.toString)
     )
   }
 

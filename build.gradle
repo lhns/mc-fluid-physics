@@ -1,1 +1,9 @@
 apply plugin: 'idea'
+
+version = project.mod_version
+group = project.maven_group
+
+def tagPrefix = "refs/tags/"
+if ((System.getenv("CI_VERSION") ?: "").startsWith(tagPrefix)) {
+    version = System.getenv("CI_VERSION").drop(tagPrefix.length()).takeWhile { it != '+' }
+}
