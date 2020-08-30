@@ -22,8 +22,6 @@ archivesBaseName = parent.project.archives_base_name
 version = parent.version + "+fabric-" + project.minecraft_version
 group = parent.group
 
-version = version + "+fabric-" + project.minecraft_version
-
 configurations {
     shadow
     compile.extendsFrom(shadow)
