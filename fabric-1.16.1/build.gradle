@@ -11,23 +11,16 @@ buildscript {
         classpath group: 'net.fabricmc', name: 'fabric-loom', version: '0.5.9'
     }
 }
-apply plugin: 'scala'
 apply plugin: 'fabric-loom'
+apply plugin: 'scala'
 apply plugin: 'maven-publish'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-archivesBaseName = project.archives_base_name
-version = project.mod_version
-group = project.maven_group
-
-def tagPrefix = "refs/tags/"
-if ((System.getenv("CI_VERSION") ?: "").startsWith(tagPrefix)) {
-    version = System.getenv("CI_VERSION").drop(tagPrefix.length()).takeWhile { it != '+' }
-}
-
-version = version + "+fabric-" + project.minecraft_version
+archivesBaseName = parent.project.archives_base_name
+version = parent.version + "+fabric-" + project.minecraft_version
+group = parent.group
 
 configurations {
     shadow
@@ -88,7 +81,11 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 jar {
     from "LICENSE"
     from {
-        configurations.shadow.collect { it.toString().contains("scala-library") ? null : it.isDirectory() ? it : zipTree(it) }
+        configurations.shadow.collect { file ->
+            [
+                    "scala-library",
+            ].any { file.toString().contains(it) } ? null : file.isDirectory() ? file : zipTree(file)
+        }
     }
 }
 
