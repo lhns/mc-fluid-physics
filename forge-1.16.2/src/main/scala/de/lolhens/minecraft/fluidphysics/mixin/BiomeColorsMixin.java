@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BiomeColors.class)
 public class BiomeColorsMixin {
     @Inject(at = @At("HEAD"), method = "getWaterColor", cancellable = true)
-    public static void getWaterColor(IBlockDisplayReader view, BlockPos pos, CallbackInfoReturnable<Integer> info) {
+    private static void getWaterColor(IBlockDisplayReader view, BlockPos pos, CallbackInfoReturnable<Integer> info) {
         if (FluidPhysicsMod.config().debugFluidState()) {
             int r = 0;
             int g = 0;

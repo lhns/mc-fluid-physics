@@ -7,6 +7,7 @@
     "ThreadedAnvilChunkStorageAccessor"
   ],
   "client": [
+    "BiomeColorsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
