@@ -135,13 +135,13 @@ def mixinstubs = task('mixinstubs') {
 
 compileJava.dependsOn(mixinstubs)
 
-compileJava.doFirst {
-    compileScala.options.compilerArgs += compileJava.options.compilerArgs
-}
-
 compileJava.doLast {
     delete(compileJava.destinationDir)
     delete(mixinstubsDir)
+}
+
+compileScala.doFirst {
+    compileScala.options.compilerArgs += compileJava.options.compilerArgs
 }
 
 mixin {

@@ -4,21 +4,21 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import net.minecraft.fluid.Fluid
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IWorld
+import net.minecraft.world.IWorldReader
 import net.minecraft.world.biome.Biome
 
 import scala.jdk.CollectionConverters._
 
 object FluidIsInfinite {
-  private val localWorld: ThreadLocal[IWorld] = new ThreadLocal()
+  private val localWorld: ThreadLocal[IWorldReader] = new ThreadLocal()
   private val localPos: ThreadLocal[BlockPos] = new ThreadLocal()
 
-  def set(world: IWorld, pos: BlockPos): Unit = {
+  def set(world: IWorldReader, pos: BlockPos): Unit = {
     localWorld.set(world);
     localPos.set(pos)
   }
 
-  def world: IWorld = localWorld.get()
+  def world: IWorldReader = localWorld.get()
 
   def pos: BlockPos = localPos.get()
 

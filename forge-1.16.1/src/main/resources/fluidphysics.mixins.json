@@ -4,7 +4,13 @@
   "package": "de.lolhens.minecraft.fluidphysics.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ThreadedAnvilChunkStorageAccessor"
+    "AbstractBlockStateMixin",
+    "FlowableFluidAccessor",
+    "FlowableFluidMixin",
+    "PistonBlockMixin",
+    "SpringFeatureMixin",
+    "ThreadedAnvilChunkStorageAccessor",
+    "WaterFluidMixin"
   ],
   "client": [
     "BiomeColorsMixin"
