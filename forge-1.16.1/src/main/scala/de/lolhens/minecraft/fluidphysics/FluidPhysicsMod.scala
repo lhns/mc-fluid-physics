@@ -21,7 +21,7 @@ object FluidPhysicsMod {
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(container.getModId)
 
   val SPRING_BLOCK_ID = new ResourceLocation(container.getModId, "spring")
-  val SPRING_BLOCK: Block = new SpringBlock(AbstractBlock.Properties.create(Material.ROCK).func_235861_h_().hardnessAndResistance(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID) //new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
+  val SPRING_BLOCK: Block = new SpringBlock(AbstractBlock.Properties.create(Material.ROCK).func_235861_h_().hardnessAndResistance(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID)
 
   FMLJavaModLoadingContext.get.getModEventBus.addListener { _: FMLCommonSetupEvent =>
     config
