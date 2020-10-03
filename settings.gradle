@@ -2,5 +2,6 @@ rootProject.name = 'mc-fluid-physics'
 
 include ':fabric-1.16.1'
 include ':fabric-1.16.2'
+include ':forge-1.15.2'
 include ':forge-1.16.1'
 include ':forge-1.16.2'
