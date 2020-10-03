@@ -1,7 +1,7 @@
 package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
-import net.minecraft.fluid.{FlowingFluid, Fluid, FluidState}
+import net.minecraft.fluid.{FlowingFluid, Fluid, IFluidState}
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorld
@@ -57,7 +57,7 @@ object FluidSourceFinder {
 
   private def findSourceInternal(world: IWorld,
                                  blockPos: BlockPos,
-                                 fluidState: FluidState,
+                                 fluidState: IFluidState,
                                  fluid: Fluid,
                                  direction: Direction,
                                  ignoreBlocks: mutable.Set[BlockPos],
@@ -86,7 +86,7 @@ object FluidSourceFinder {
         val nextToSpring = FluidPhysicsMod.config.spring.map(_.getBlock) match {
           case Some(springBlock) =>
             (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
-              world.getBlockState(blockPos.offset(direction)).isIn(springBlock)
+              world.getBlockState(blockPos.offset(direction)).getBlock == springBlock
             }
 
           case None =>

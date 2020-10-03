@@ -6,7 +6,7 @@ import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -23,7 +23,7 @@ import scala.Option;
 @Mixin(FlowingFluid.class)
 public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     @Shadow
-    protected abstract boolean isSameAs(FluidState state);
+    protected abstract boolean isSameAs(IFluidState state);
 
     @Inject(at = @At("RETURN"), method = "func_211759_a", cancellable = true)
     private void func_211759_a(IBlockReader world,
@@ -36,7 +36,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         if (info.getReturnValue() &&
                 FluidPhysicsMod.config().enabledFor(fluid) &&
                 FluidPhysicsMod.config().flowOverSources()) {
-            FluidState fluidState = fromState.getFluidState();
+            IFluidState fluidState = fromState.getFluidState();
             if (isSameAs(fluidState)) {
                 info.setReturnValue(false);
             }
@@ -50,7 +50,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            Direction flowDirection,
                            BlockPos flowTo,
                            BlockState flowToBlockState,
-                           FluidState fluidState,
+                           IFluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
         if (!FluidPhysicsMod.config().enabledFor(fluid)) return;
@@ -64,24 +64,24 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
 
 
     @Inject(at = @At("HEAD"), method = "calculateCorrectFlowingState")
-    protected void calculateCorrectFlowingState(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> info) {
+    protected void calculateCorrectFlowingState(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<IFluidState> info) {
         FluidIsInfinite.set(world, pos);
     }
 
     @Shadow
-    public abstract FluidState getStillFluidState(boolean falling);
+    public abstract IFluidState getStillFluidState(boolean falling);
 
     @Shadow
-    public abstract FluidState getFlowingFluidState(int level, boolean falling);
+    public abstract IFluidState getFlowingFluidState(int level, boolean falling);
 
     @Inject(at = @At("HEAD"), method = "flowInto", cancellable = true)
     protected void flowInto(IWorld world,
                             BlockPos pos,
                             BlockState state,
                             Direction direction,
-                            FluidState fluidState,
+                            IFluidState fluidState,
                             CallbackInfo info) {
-        FluidState still = getStillFluidState(false);
+        IFluidState still = getStillFluidState(false);
 
         if (!FluidPhysicsMod.config().enabledFor(still.getFluid())) return;
 
@@ -97,7 +97,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
 
             if (sourcePos.isDefined()) {
                 int newSourceLevel = still.getLevel() - 1;
-                FluidState newSourceFluidState = getFlowingFluidState(newSourceLevel, false);
+                IFluidState newSourceFluidState = getFlowingFluidState(newSourceLevel, false);
 
                 BlockState sourceState = world.getBlockState(sourcePos.get());
 

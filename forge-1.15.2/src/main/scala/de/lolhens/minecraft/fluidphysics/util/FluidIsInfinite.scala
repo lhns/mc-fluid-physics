@@ -29,7 +29,7 @@ object FluidIsInfinite {
       val nextToSpring = FluidPhysicsMod.config.spring match {
         case Some(spring) if spring.allowInfiniteWater =>
           (Direction.DOWN +: horizontal).exists { direction =>
-            world.getBlockState(pos.offset(direction)).isIn(spring.getBlock)
+            world.getBlockState(pos.offset(direction)).getBlock == spring.getBlock
           }
         case _ =>
           false

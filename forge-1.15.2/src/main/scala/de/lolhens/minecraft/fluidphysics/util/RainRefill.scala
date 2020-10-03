@@ -4,7 +4,7 @@ import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.RainRefillCon
 import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.minecraft.block.BlockState
-import net.minecraft.fluid.{FlowingFluid, FluidState}
+import net.minecraft.fluid.{FlowingFluid, IFluidState}
 import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.World
 import net.minecraft.world.chunk.{Chunk, ChunkStatus}
@@ -63,7 +63,7 @@ object RainRefill {
   private def shouldRefill(world: World,
                            blockPos: BlockPos,
                            blockState: BlockState,
-                           fluidState: FluidState,
+                           fluidState: IFluidState,
                            fluid: FlowingFluid,
                            rainRefillOptions: RainRefillConfig): Boolean = {
     if (!fluidState.isSource && rainRefillOptions.canRainAt(world, blockPos)) {
@@ -108,7 +108,7 @@ object RainRefill {
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState
       fluidState.getFluid match {
-        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.getBlockState.isIn(blockState.getBlock) =>
+        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.getBlockState.getBlock == blockState.getBlock =>
           if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid, rainRefillOptions)) {
             val still = fluid.getStillFluidState(false)
             world.setBlockState(blockPos, still.getBlockState)

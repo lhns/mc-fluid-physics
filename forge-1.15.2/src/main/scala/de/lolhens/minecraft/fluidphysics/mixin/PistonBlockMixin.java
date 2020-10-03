@@ -4,7 +4,7 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FlowingFluid;
-import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,7 +29,7 @@ public abstract class PistonBlockMixin {
                                 CallbackInfoReturnable<Boolean> info) {
         BlockPos prevBlockPos = pos.offset(motionDir.getOpposite());
 
-        FluidState prevBlockFluidState = world.getFluidState(prevBlockPos);
+        IFluidState prevBlockFluidState = world.getFluidState(prevBlockPos);
         if (!prevBlockFluidState.isEmpty() &&
                 FluidPhysicsMod.config().enabledFor(prevBlockFluidState.getFluid()) &&
                 prevBlockFluidState.isSource() &&
@@ -45,7 +45,7 @@ public abstract class PistonBlockMixin {
                         boolean retract,
                         CallbackInfoReturnable<Boolean> info) {
         BlockPos blockPos = pos.offset(dir);
-        if (!retract && world.getBlockState(blockPos).isIn(Blocks.PISTON_HEAD)) {
+        if (!retract && world.getBlockState(blockPos).getBlock() == Blocks.PISTON_HEAD) {
             world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 20);
         }
 
@@ -64,7 +64,7 @@ public abstract class PistonBlockMixin {
 
             for (BlockPos currentBlockPos : blockPosSet) {
                 BlockState blockState = world.getBlockState(currentBlockPos);
-                FluidState fluidState = blockState.getFluidState();
+                IFluidState fluidState = blockState.getFluidState();
 
                 if (!fluidState.isEmpty() &&
                         FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
@@ -82,9 +82,9 @@ public abstract class PistonBlockMixin {
                     );
 
                     if (sourcePos.isDefined()) {
-                        FluidState still = fluid.getStillFluidState(false);
+                        IFluidState still = fluid.getStillFluidState(false);
                         int newSourceLevel = still.getLevel() - 1;
-                        FluidState newSourceFluidState = fluid.getFlowingFluidState(newSourceLevel, false);
+                        IFluidState newSourceFluidState = fluid.getFlowingFluidState(newSourceLevel, false);
 
                         BlockState sourceState = world.getBlockState(sourcePos.get());
 

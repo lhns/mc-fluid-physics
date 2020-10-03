@@ -114,7 +114,9 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
 
-    implementation "scalable-cats-force:ScalableCatsForce:2.13.1:dev"
+    implementation 'org.spongepowered:mixin:0.8'
+    //implementation "scalable-cats-force:ScalableCatsForce:2.13.1:dev"
+    implementation files('lib/ScalableCatsForce-2.13.1-build-6-dev.jar')
     implementation "org.scala-lang:scala-library:2.13.3"
     implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.1.0'
 
