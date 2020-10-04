@@ -4,7 +4,7 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.block.piston.PistonHandler;
-import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.BaseFluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -46,7 +46,7 @@ public abstract class PistonBlockMixin {
                       boolean retract,
                       CallbackInfoReturnable<Boolean> info) {
         BlockPos blockPos = pos.offset(dir);
-        if (!retract && world.getBlockState(blockPos).isOf(Blocks.PISTON_HEAD)) {
+        if (!retract && world.getBlockState(blockPos).getBlock() == Blocks.PISTON_HEAD) {
             world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 20);
         }
 
@@ -69,8 +69,8 @@ public abstract class PistonBlockMixin {
 
                 if (!fluidState.isEmpty() &&
                         FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
-                        fluidState.getFluid() instanceof FlowableFluid && !fluidState.isStill()) {
-                    FlowableFluid fluid = (FlowableFluid) fluidState.getFluid();
+                        fluidState.getFluid() instanceof BaseFluid && !fluidState.isStill()) {
+                    BaseFluid fluid = (BaseFluid) fluidState.getFluid();
 
                     Option<BlockPos> sourcePos = FluidSourceFinder.findSource(
                             world,

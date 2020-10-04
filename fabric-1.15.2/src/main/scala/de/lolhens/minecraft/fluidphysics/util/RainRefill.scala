@@ -5,7 +5,7 @@ import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
-import net.minecraft.fluid.{FlowableFluid, FluidState}
+import net.minecraft.fluid.{BaseFluid, FluidState}
 import net.minecraft.server.world.{ServerChunkManager, ServerWorld}
 import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.chunk.{ChunkStatus, WorldChunk}
@@ -55,7 +55,7 @@ object RainRefill {
                            blockPos: BlockPos,
                            blockState: BlockState,
                            fluidState: FluidState,
-                           fluid: FlowableFluid,
+                           fluid: BaseFluid,
                            rainRefillOptions: RainRefillConfig): Boolean = {
     if (!fluidState.isStill && rainRefillOptions.canRainAt(world, blockPos)) {
       def onlySources[A](iterable: IterableOnce[A])(pos: A => BlockPos): List[A] =
@@ -99,7 +99,7 @@ object RainRefill {
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState
       fluidState.getFluid match {
-        case fluid: FlowableFluid if !fluidState.isEmpty && fluidState.getBlockState.isOf(blockState.getBlock) =>
+        case fluid: BaseFluid if !fluidState.isEmpty && fluidState.getBlockState.getBlock == blockState.getBlock =>
           if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid, rainRefillOptions)) {
             val still = fluid.getStill(false)
             world.setBlockState(blockPos, still.getBlockState)

@@ -4,13 +4,13 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidIsInfinite;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
-import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.BaseFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.WorldView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import scala.Option;
 
-@Mixin(FlowableFluid.class)
+@Mixin(BaseFluid.class)
 public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     //method_15748: isMatchingOrEmpty
     //method_15744: flowSideways
@@ -81,7 +81,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     public abstract FluidState getFlowing(int level, boolean falling);
 
     @Inject(at = @At("HEAD"), method = "flow", cancellable = true)
-    protected void flow(WorldAccess world,
+    protected void flow(IWorld world,
                         BlockPos pos,
                         BlockState state,
                         Direction direction,

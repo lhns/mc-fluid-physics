@@ -40,7 +40,7 @@ trait Config[Self] extends Config.Implicits {
 }
 
 object Config {
-  def configDirectory: Path = FabricLoader.getInstance().getConfigDirectory.toPath
+  def configDirectory: Path = FabricLoader.getInstance().getConfigDir
 
   def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
 

@@ -23,7 +23,7 @@ object FluidPhysicsMod extends ModInitializer {
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(metadata.getId)
 
   val SPRING_BLOCK_ID = new Identifier(metadata.getId, "spring")
-  val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).requiresTool().hardness(2.0F).resistance(6.0F))
+  val SPRING_BLOCK: Block = new SpringBlock(FabricBlockSettings.of(Material.STONE).hardness(2.0F).resistance(6.0F))
 
   override def onInitialize(): Unit = {
     config

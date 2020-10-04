@@ -1,9 +1,9 @@
 package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
-import net.minecraft.fluid.{FlowableFluid, Fluid, FluidState}
+import net.minecraft.fluid.{BaseFluid, Fluid, FluidState}
 import net.minecraft.util.math.{BlockPos, Direction}
-import net.minecraft.world.WorldAccess
+import net.minecraft.world.IWorld
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -13,18 +13,18 @@ object FluidSourceFinder {
 
   def setOf(blockPos: java.util.Collection[BlockPos]): mutable.Set[BlockPos] = blockPos.asScala.to(mutable.Set)
 
-  def findSource(world: WorldAccess,
+  def findSource(world: IWorld,
                  blockPos: BlockPos,
                  fluid: Fluid): Option[BlockPos] =
     findSource(world, blockPos, fluid, Direction.UP)
 
-  def findSource(world: WorldAccess,
+  def findSource(world: IWorld,
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction): Option[BlockPos] =
     findSource(world, blockPos, fluid, direction, mutable.Set.empty, ignoreFirst = false, ignoreLevel = false, defaultMaxIterations)
 
-  def findSource(world: WorldAccess,
+  def findSource(world: IWorld,
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction,
@@ -33,7 +33,7 @@ object FluidSourceFinder {
                  ignoreLevel: Boolean): Option[BlockPos] =
     findSource(world, blockPos, fluid, direction, ignoreBlocks, ignoreFirst, ignoreLevel, defaultMaxIterations)
 
-  def findSource(world: WorldAccess,
+  def findSource(world: IWorld,
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction,
@@ -54,7 +54,7 @@ object FluidSourceFinder {
       0
     )
 
-  private def findSourceInternal(world: WorldAccess,
+  private def findSourceInternal(world: IWorld,
                                  blockPos: BlockPos,
                                  fluidState: FluidState,
                                  fluid: Fluid,
@@ -85,7 +85,7 @@ object FluidSourceFinder {
         val nextToSpring = FluidPhysicsMod.config.spring.map(_.getBlock) match {
           case Some(springBlock) =>
             (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
-              world.getBlockState(blockPos.offset(direction)).isOf(springBlock)
+              world.getBlockState(blockPos.offset(direction)).getBlock == springBlock
             }
 
           case None =>
@@ -97,7 +97,7 @@ object FluidSourceFinder {
         }
       }
 
-      val falling = fluidState.get(FlowableFluid.FALLING)
+      val falling = fluidState.get(BaseFluid.FALLING)
 
       var i = 0
       while (i < horizontal.length) {
@@ -108,7 +108,7 @@ object FluidSourceFinder {
           val nextFluidState = world.getFluidState(nextBlockPos)
           if (!nextFluidState.isEmpty) {
             val nextLevel = nextFluidState.getLevel
-            val nextFalling = nextFluidState.get(FlowableFluid.FALLING)
+            val nextFalling = nextFluidState.get(BaseFluid.FALLING)
             if (nextLevel > level || (falling && !nextFalling) || ignoreLevel) {
               val sourcePos = findSourceInternal(world, nextBlockPos, nextFluidState, fluid, nextDirection, ignoreBlocks, ignoreFirst = false, ignoreLevel, maxIterations, iteration + 1)
               if (sourcePos.isDefined) return sourcePos

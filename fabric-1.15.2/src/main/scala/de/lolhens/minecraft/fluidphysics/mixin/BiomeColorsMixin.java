@@ -4,7 +4,7 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.BaseFluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
@@ -26,7 +26,7 @@ public class BiomeColorsMixin {
                 FluidState state = ((FluidBlock) Blocks.WATER).getFluidState(view.getBlockState(pos));
                 r = 255 / 8 * state.getLevel();
                 g = state.isStill() ? 255 : 0;
-                b = state.get(FlowableFluid.FALLING) ? 255 : 0;
+                b = state.get(BaseFluid.FALLING) ? 255 : 0;
             } catch (Exception ignored) {
             }
 
