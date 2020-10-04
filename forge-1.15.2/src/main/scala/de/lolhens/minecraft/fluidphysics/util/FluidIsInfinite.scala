@@ -14,7 +14,7 @@ object FluidIsInfinite {
   private val localPos: ThreadLocal[BlockPos] = new ThreadLocal()
 
   def set(world: IWorldReader, pos: BlockPos): Unit = {
-    localWorld.set(world);
+    localWorld.set(world)
     localPos.set(pos)
   }
 
