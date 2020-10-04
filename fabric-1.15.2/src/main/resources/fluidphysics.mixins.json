@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.lolhens.minecraft.fluidphysics.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "AbstractBlockStateMixin",
+    "FlowableFluidAccessor",
+    "FlowableFluidMixin",
+    "PistonBlockMixin",
+    "SpringFeatureMixin",
+    "ThreadedAnvilChunkStorageAccessor",
+    "WaterFluidMixin"
+  ],
+  "client": [
+    "BiomeColorsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
