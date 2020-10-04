@@ -32,6 +32,8 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 [<img src="https://user-images.githubusercontent.com/1524059/88789314-e5dd3300-d196-11ea-99dc-2399393ef409.png" width="32"> Fabric Language Scala](https://www.curseforge.com/minecraft/mc-mods/fabric-language-scala)
 
 ### [Forge](https://files.minecraftforge.net/)
+[<img src="https://avatars2.githubusercontent.com/u/1390178" width="32"> Minecraft Forge](https://files.minecraftforge.net/)
+
 [<img src="https://user-images.githubusercontent.com/1524059/91673183-2849b500-eb33-11ea-8f9d-3d486f266000.png" width="32"> Scalable Cat's Force](https://www.curseforge.com/minecraft/mc-mods/scalable-cats-force)
 
 [<img src="https://user-images.githubusercontent.com/1524059/94992271-30a96b80-0589-11eb-8fcd-b6c8ed66ad32.png" width="32"> MixinBootstrap](https://www.curseforge.com/minecraft/mc-mods/mixinbootstrap) (only required on 1.15.2)
