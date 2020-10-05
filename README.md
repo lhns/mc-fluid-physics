@@ -15,16 +15,6 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 - Rain refills lakes and oceans (similar to infinite water sources in vanilla)
 - Works with vanilla clients (you have to set the config option spring/block to a vanilla block like 'mossy_cobblestone')
 
-## Screenshots
-![](https://raw.githubusercontent.com/LolHens/mc-fluid-physics/master/screenshots/2020-07-07_00.22.08.png)
-![](https://raw.githubusercontent.com/LolHens/mc-fluid-physics/master/screenshots/2020-07-07_01.09.31.png)
-
-## Videos
-[![](https://img.youtube.com/vi/ruu0PwRRzL8/0.jpg)](https://www.youtube.com/watch?v=ruu0PwRRzL8)
-
-## Known issues
-- Under some circumstances fluids can stop flowing (This is why in the video I have the glass block slowing down the water flowing into the sandstone tank)
-
 ## Requirements
 ### [Fabric](https://fabricmc.net/)
 [<img src="https://fabricmc.net/assets/logo.png" width="32"> Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
@@ -37,6 +27,16 @@ Fluids flowing horizontally will not be affected by this mod. Fluids flowing dow
 [<img src="https://user-images.githubusercontent.com/1524059/91673183-2849b500-eb33-11ea-8f9d-3d486f266000.png" width="32"> Scalable Cat's Force](https://www.curseforge.com/minecraft/mc-mods/scalable-cats-force)
 
 [<img src="https://user-images.githubusercontent.com/1524059/94992271-30a96b80-0589-11eb-8fcd-b6c8ed66ad32.png" width="32"> MixinBootstrap](https://www.curseforge.com/minecraft/mc-mods/mixinbootstrap) (only required on 1.15.2)
+
+## Screenshots
+![](https://raw.githubusercontent.com/LolHens/mc-fluid-physics/master/screenshots/2020-07-07_00.22.08.png)
+![](https://raw.githubusercontent.com/LolHens/mc-fluid-physics/master/screenshots/2020-07-07_01.09.31.png)
+
+## Videos
+[![](https://img.youtube.com/vi/ruu0PwRRzL8/0.jpg)](https://www.youtube.com/watch?v=ruu0PwRRzL8)
+
+## Known issues
+- Under some circumstances fluids can stop flowing (This is why in the video I have the glass block slowing down the water flowing into the sandstone tank)
 
 ## Older versions
 These are the previous iterations of this mod:
