@@ -3,6 +3,7 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.block.piston.PistonHandler;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.FluidState;
@@ -28,14 +29,16 @@ public abstract class PistonBlockMixin {
                                   boolean canBreak,
                                   Direction pistonDir,
                                   CallbackInfoReturnable<Boolean> info) {
-        BlockPos prevBlockPos = pos.offset(motionDir.getOpposite());
-
-        FluidState prevBlockFluidState = world.getFluidState(prevBlockPos);
-        if (!prevBlockFluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(prevBlockFluidState.getFluid()) &&
-                prevBlockFluidState.isStill() &&
-                state.getFluidState().isEmpty()) {
-            info.setReturnValue(false);
+        FluidState fluidState = state.getFluidState();
+        if (!fluidState.isEmpty() &&
+                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                fluidState.isStill()) {
+            BlockPos nextBlockPos = pos.offset(motionDir);
+            BlockState nextBlockState = world.getBlockState(nextBlockPos);
+            if (!(nextBlockState.getFluidState().getFluid().matchesType(fluidState.getFluid()) ||
+                    nextBlockState.getPistonBehavior() == PistonBehavior.DESTROY)) {
+                info.setReturnValue(false);
+            }
         }
     }
 

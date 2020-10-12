@@ -3,6 +3,7 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
+import net.minecraft.block.material.PushReaction;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.Direction;
@@ -35,6 +36,18 @@ public abstract class PistonBlockMixin {
                 prevBlockFluidState.isSource() &&
                 state.getFluidState().isEmpty()) {
             info.setReturnValue(false);
+        }
+
+        FluidState fluidState = state.getFluidState();
+        if (!fluidState.isEmpty() &&
+                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                fluidState.isSource()) {
+            BlockPos nextBlockPos = pos.offset(motionDir);
+            BlockState nextBlockState = world.getBlockState(nextBlockPos);
+            if (!(nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
+                    nextBlockState.getPushReaction() == PushReaction.DESTROY)) {
+                info.setReturnValue(false);
+            }
         }
     }
 
