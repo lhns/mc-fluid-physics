@@ -34,7 +34,8 @@ public abstract class PistonBlockMixin {
                 fluidState.isSource()) {
             BlockPos nextBlockPos = pos.offset(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
-            if (!(nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
+            if (!(nextBlockState.isAir(world, nextBlockPos) ||
+                    nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
                     nextBlockState.getPushReaction() == PushReaction.DESTROY)) {
                 info.setReturnValue(false);
             }

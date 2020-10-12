@@ -28,23 +28,14 @@ public abstract class PistonBlockMixin {
                                 boolean canBreak,
                                 Direction pistonDir,
                                 CallbackInfoReturnable<Boolean> info) {
-        BlockPos prevBlockPos = pos.offset(motionDir.getOpposite());
-
-        FluidState prevBlockFluidState = world.getFluidState(prevBlockPos);
-        if (!prevBlockFluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(prevBlockFluidState.getFluid()) &&
-                prevBlockFluidState.isSource() &&
-                state.getFluidState().isEmpty()) {
-            info.setReturnValue(false);
-        }
-
         FluidState fluidState = state.getFluidState();
         if (!fluidState.isEmpty() &&
                 FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
                 fluidState.isSource()) {
             BlockPos nextBlockPos = pos.offset(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
-            if (!(nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
+            if (!(nextBlockState.isAir(world, nextBlockPos) ||
+                    nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
                     nextBlockState.getPushReaction() == PushReaction.DESTROY)) {
                 info.setReturnValue(false);
             }
