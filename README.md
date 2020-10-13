@@ -1,5 +1,5 @@
 # Fluid Physics (Minecraft Mod)
-[![Docker Workflow](https://github.com/LolHens/mc-fluid-physics/workflows/build/badge.svg)](https://github.com/LolHens/mc-fluid-physics/actions?query=workflow%3Abuild)
+[![Build Workflow](https://github.com/LolHens/mc-fluid-physics/workflows/build/badge.svg)](https://github.com/LolHens/mc-fluid-physics/actions?query=workflow%3Abuild)
 [![Release Notes](https://img.shields.io/github/release/LolHens/mc-fluid-physics.svg?maxAge=3600)](https://github.com/LolHens/mc-fluid-physics/releases/latest)
 [![Apache License 2.0](https://img.shields.io/github/license/LolHens/mc-fluid-physics.svg?maxAge=3600)](https://www.apache.org/licenses/LICENSE-2.0)
 
