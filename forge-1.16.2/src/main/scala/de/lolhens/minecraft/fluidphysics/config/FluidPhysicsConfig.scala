@@ -13,6 +13,7 @@ import net.minecraftforge.registries.{ForgeRegistries, IForgeRegistry, IForgeReg
 
 case class FluidPhysicsConfig(fluidWhitelist: Seq[ResourceLocation] = Seq(Fluids.WATER, Fluids.LAVA).map(ForgeRegistries.FLUIDS.getKey),
                               findSourceMaxIterations: Int = 255,
+                              findSourceMaxCheckedBlocks: Option[Int] = Some(4095),
                               biomeDependentFluidInfinity: Boolean = false,
                               flowOverSources: Boolean = true,
                               debugFluidState: Boolean = false,

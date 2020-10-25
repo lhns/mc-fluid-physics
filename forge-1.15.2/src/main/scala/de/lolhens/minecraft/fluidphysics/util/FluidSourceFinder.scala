@@ -65,7 +65,9 @@ object FluidSourceFinder {
                                  ignoreLevel: Boolean,
                                  maxIterations: Int,
                                  iteration: Int): Option[BlockPos] = {
-    if (iteration > maxIterations) return None
+    if (iteration > maxIterations ||
+      FluidPhysicsMod.config.findSourceMaxCheckedBlocks.exists(ignoreBlocks.size >= _))
+      return None
 
     if (!ignoreFirst && ignoreBlocks.contains(blockPos)) return None
     ignoreBlocks.add(blockPos)

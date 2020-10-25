@@ -13,6 +13,7 @@ import net.minecraft.world.biome.Biome
 
 case class FluidPhysicsConfig(fluidWhitelist: Seq[Identifier] = Seq(Fluids.WATER, Fluids.LAVA).map(Registry.FLUID.getId),
                               findSourceMaxIterations: Int = 255,
+                              findSourceMaxCheckedBlocks: Option[Int] = Some(4095),
                               biomeDependentFluidInfinity: Boolean = false,
                               flowOverSources: Boolean = true,
                               debugFluidState: Boolean = false,
