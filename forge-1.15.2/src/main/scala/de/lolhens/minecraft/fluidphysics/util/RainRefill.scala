@@ -18,11 +18,10 @@ import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 object RainRefill {
-  def init(): Unit = {
+  def register(): Unit = {
     MinecraftForge.EVENT_BUS.addListener { event: TickEvent.WorldTickEvent =>
       (event.phase, event.world) match {
         case (Phase.END, serverWorld: ServerWorld) =>
-          println("server world end tick")
           refillInLoadedChunks(serverWorld)
 
         case _ =>
