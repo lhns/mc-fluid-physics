@@ -15,7 +15,7 @@ import java.util.Random;
 
 @Mixin(SpringFeature.class)
 public class SpringFeatureMixin {
-    @Inject(at = @At("RETURN"), method = "func_241855_a", cancellable = true)
+    @Inject(at = @At("RETURN"), method = "generate", cancellable = true)
     public void generate(ISeedReader structureWorldAccess,
                          ChunkGenerator chunkGenerator,
                          Random random,
