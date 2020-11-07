@@ -59,10 +59,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            FluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
-        if (!FluidPhysicsMod.config().enabledFor(fluid)) return;
-
         if (flowDirection == Direction.DOWN &&
-                fluid.matchesType(fluidBlockState.getFluidState().getFluid()) &&
+                FluidPhysicsMod.config().enabledFor(fluid) &&
+                ((FlowableFluid) (Object) this).matchesType(fluidState.getFluid()) &&
                 !fluidState.isStill()) {
             info.setReturnValue(true);
         }
