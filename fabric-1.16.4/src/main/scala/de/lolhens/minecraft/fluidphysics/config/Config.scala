@@ -15,6 +15,8 @@ import scala.jdk.CollectionConverters._
 trait Config[Self] extends Config.Implicits {
   def default: Self
 
+  def updateConfig(config: Self): Boolean
+
   protected def codec: Codec[Self]
 
   protected final def makeCodec(implicit decoder: Decoder[Self], encoder: Encoder[Self]): Codec[Self] =
@@ -68,7 +70,7 @@ trait Config[Self] extends Config.Implicits {
     } else {
       val configString = Files.readAllLines(path, StandardCharsets.UTF_8).asScala.mkString("\n")
       val config = decodeString(configString)
-      if (configString != encodeString(config))
+      if (updateConfig(config) && configString != encodeString(config))
         saveToPath(path, config)
       config
     }

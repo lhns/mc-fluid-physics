@@ -13,6 +13,9 @@ import net.minecraft.world.World
 import net.minecraft.world.biome.Biome
 
 case class FluidPhysicsConfig(
+                               updateConfig: Commented[Boolean] = true ->
+                                 "Automatically update config when the structure changes in new versions",
+
                                fluidWhitelist: Commented[Seq[Identifier]] = Seq(Fluids.WATER, Fluids.LAVA).map(Registry.FLUID.getId) ->
                                  "Fluids that are affected by this mod",
 
@@ -48,6 +51,8 @@ case class FluidPhysicsConfig(
 
 object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
   override val default: FluidPhysicsConfig = FluidPhysicsConfig()
+
+  override def updateConfig(config: FluidPhysicsConfig): Boolean = config.updateConfig.value
 
   override protected def codec: Codec[FluidPhysicsConfig] = makeCodec
 
