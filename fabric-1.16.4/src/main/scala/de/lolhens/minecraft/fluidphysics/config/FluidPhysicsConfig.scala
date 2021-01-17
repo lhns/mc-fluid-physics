@@ -45,8 +45,6 @@ case class FluidPhysicsConfig(
   def getDebugFluidState: Boolean = debugFluidState.value
 
   def enabledFor(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.matchesType(fluid))
-
-  this.getFluidWhitelist
 }
 
 object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {

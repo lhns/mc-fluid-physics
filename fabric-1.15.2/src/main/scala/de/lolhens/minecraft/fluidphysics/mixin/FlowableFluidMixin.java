@@ -41,7 +41,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                               CallbackInfoReturnable<Boolean> info) {
         if (info.getReturnValue() &&
                 FluidPhysicsMod.config().enabledFor(fluid) &&
-                FluidPhysicsMod.config().flowOverSources()) {
+                FluidPhysicsMod.config().getFlowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
             if (isMatchingAndStill(fluidState)) {
                 info.setReturnValue(false);

@@ -26,7 +26,7 @@ object FluidIsInfinite {
   def isInfinite(fluid: Fluid): Boolean =
     if (FluidPhysicsMod.config.enabledFor(fluid)) {
       val nextToSpring = FluidPhysicsMod.config.spring match {
-        case Some(spring) if spring.allowInfiniteWater =>
+        case Some(spring) if spring.allowInfiniteWater.value =>
           (Direction.DOWN +: horizontal).exists { direction =>
             world.getBlockState(pos.offset(direction)).getBlock == spring.getBlock
           }
@@ -35,7 +35,7 @@ object FluidIsInfinite {
       }
 
       val isBiome =
-        if (FluidPhysicsMod.config.biomeDependentFluidInfinity) {
+        if (FluidPhysicsMod.config.biomeDependentFluidInfinity.value) {
           val biomeCategory = world.getBiome(pos).getCategory
           biomeCategory == Biome.Category.OCEAN || biomeCategory == Biome.Category.RIVER
         } else {
