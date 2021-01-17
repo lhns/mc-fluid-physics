@@ -1,6 +1,7 @@
 package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.RainRefillConfig
+import de.lolhens.minecraft.fluidphysics.mixin.ThreadedAnvilChunkStorageAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
@@ -10,6 +11,7 @@ import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.chunk.{ChunkStatus, WorldChunk}
 import net.minecraft.world.{Heightmap, World}
 
+import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 object RainRefill {

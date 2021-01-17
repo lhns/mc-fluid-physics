@@ -1,7 +1,7 @@
 package de.lolhens.minecraft.fluidphysics.config
 
-import de.lolhens.minecraft.fluidphysics.config.Config.Value.ValueEncoder
-import de.lolhens.minecraft.fluidphysics.config.Config.{Value, configPath, spaces2}
+import de.lolhens.minecraft.fluidphysics.config.Config.Commented.CommentedValueEncoder
+import de.lolhens.minecraft.fluidphysics.config.Config.{Commented, configPath, spaces2}
 import io.circe._
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
@@ -27,8 +27,8 @@ trait Config[Self] extends Config.Implicits {
 
   def encodeString(config: Self): String = {
     val configJson =
-      Value.withValueEncoder(ValueEncoder.Raw)(config.asJson)
-        .deepMerge(Value.withValueEncoder(ValueEncoder.Comment)(default.asJson))
+      Commented.overrideEncoder(CommentedValueEncoder.Raw)(config.asJson)
+        .deepMerge(Commented.overrideEncoder(CommentedValueEncoder.Comment)(default.asJson))
 
     def transformComments(json: Json): Json =
       json
@@ -82,41 +82,38 @@ object Config {
 
   private val spaces2 = Printer.spaces2.copy(colonLeft = "")
 
-  case class Value[A](value: A, description: Option[String])
+  case class Commented[A](value: A, private val comment: Option[String])
 
-  object Value {
+  object Commented {
 
-    trait ValueEncoder {
-      def encode[A](value: Value[A], encoder: Encoder[A]): Json
+    trait CommentedValueEncoder {
+      def encode[A](value: Commented[A], encoder: Encoder[A]): Json
     }
 
-    object ValueEncoder {
+    object CommentedValueEncoder {
 
-      object Value extends ValueEncoder {
-        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = encoder(value.value)
+      object Value extends CommentedValueEncoder {
+        override def encode[A](value: Commented[A], encoder: Encoder[A]): Json = encoder(value.value)
       }
 
-      private def comment[A](value: Value[A]): (String, Json) =
-        "_comment" -> value.description.fold(Json.Null)(Json.fromString)
+      private def comment[A](value: Commented[A]): (String, Json) =
+        "_comment" -> value.comment.fold(Json.Null)(Json.fromString)
 
-      object Raw extends ValueEncoder {
-        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = Json.fromFields(List(
-          comment(value),
-          "value" -> encoder(value.value)
-        ))
+      object Raw extends CommentedValueEncoder {
+        override def encode[A](value: Commented[A], encoder: Encoder[A]): Json =
+          Json.fromFields(List(comment(value), "value" -> encoder(value.value)))
       }
 
-      object Comment extends ValueEncoder {
-        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = Json.fromFields(List(
-          comment(value)
-        ))
+      object Comment extends CommentedValueEncoder {
+        override def encode[A](value: Commented[A], encoder: Encoder[A]): Json =
+          Json.fromFields(List(comment(value)))
       }
 
     }
 
-    private val localValueEncoder: ThreadLocal[ValueEncoder] = new ThreadLocal()
+    private val localValueEncoder: ThreadLocal[CommentedValueEncoder] = new ThreadLocal()
 
-    def withValueEncoder[A](encoder: ValueEncoder)(f: => A): A = {
+    def overrideEncoder[A](encoder: CommentedValueEncoder)(f: => A): A = {
       val prevValueEncoder = localValueEncoder.get()
       localValueEncoder.set(encoder)
       val result = f
@@ -124,13 +121,13 @@ object Config {
       result
     }
 
-    implicit def decoder[A: Decoder]: Decoder[Value[A]] = Decoder[A].map(Value(_, None))
+    implicit def decoder[A: Decoder]: Decoder[Commented[A]] = Decoder[A].map(Commented(_, None))
 
-    implicit def encoder[A: Encoder]: Encoder[Value[A]] = Encoder.instance { value =>
-      Option(localValueEncoder.get()).getOrElse(ValueEncoder.Value).encode(value, Encoder[A])
+    implicit def encoder[A: Encoder]: Encoder[Commented[A]] = Encoder.instance { value =>
+      Option(localValueEncoder.get()).getOrElse(CommentedValueEncoder.Value).encode(value, Encoder[A])
     }
 
-    implicit def fromTuple[A](tuple: (A, String)): Value[A] = Value(tuple._1, Some(tuple._2).filter(_.nonEmpty))
+    implicit def fromTuple[A](tuple: (A, String)): Commented[A] = Commented(tuple._1, Some(tuple._2).filter(_.nonEmpty))
   }
 
   trait Implicits extends AutoDerivation {
