@@ -1,14 +1,15 @@
 package de.lolhens.minecraft.fluidphysics.config
 
-import java.nio.file.{Files, Path}
-
-import de.lolhens.minecraft.fluidphysics.config.Config.{configPath, spaces2}
+import de.lolhens.minecraft.fluidphysics.config.Config.Value.ValueEncoder
+import de.lolhens.minecraft.fluidphysics.config.Config.{Value, configPath, spaces2}
+import io.circe._
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
-import io.circe.{Codec, Decoder, Encoder, Printer}
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.util.Identifier
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 
 trait Config[Self] extends Config.Implicits {
@@ -21,11 +22,42 @@ trait Config[Self] extends Config.Implicits {
 
   private implicit lazy val implicitCodec: Codec[Self] = codec
 
-  private def loadFromPath(path: Path): Self =
-    io.circe.config.parser.decodeFile[Self](path.toFile).toTry.get
+  def decodeString(string: String): Self =
+    io.circe.config.parser.decode[Self](string).toTry.get
+
+  def encodeString(config: Self): String = {
+    val configJson =
+      Value.withValueEncoder(ValueEncoder.Raw)(config.asJson)
+        .deepMerge(Value.withValueEncoder(ValueEncoder.Comment)(default.asJson))
+
+    def transformComments(json: Json): Json =
+      json
+        .mapArray(_.map(transformComments))
+        .mapObject(obj => JsonObject.fromIterable(obj.toIterable.flatMap {
+          case (key, obj) if obj.isObject =>
+            (obj.asObject.flatMap(_ ("_comment")),
+              obj.asObject.flatMap(_ ("value"))) match {
+              case (Some(comment), Some(value)) =>
+                Some(comment)
+                  .filterNot(_.isNull)
+                  .map(s"_comment_$key" -> _)
+                  .toList ++
+                  List(key -> value)
+              case _ =>
+                List(key -> transformComments(obj))
+            }
+          case e =>
+            List(e)
+        }))
+
+    transformComments(configJson)
+      .printWith(spaces2)
+      .replaceAll("\"_comment_.*?\"\\s*?:\\s*?\"(.*)\",?", "// $1")
+      .replaceAll("\"(.*?)\"\\s*?:\\s*", "$1 = ")
+  }
 
   private def saveToPath(path: Path, config: Self): Unit =
-    Files.write(path, List(config.asJson.printWith(spaces2)).asJava)
+    Files.write(path, List(encodeString(config)).asJava, StandardCharsets.UTF_8)
 
   def loadOrCreate(modId: String): Self = {
     val path = configPath(modId)
@@ -34,7 +66,11 @@ trait Config[Self] extends Config.Implicits {
       saveToPath(path, config)
       config
     } else {
-      loadFromPath(path)
+      val configString = Files.readAllLines(path, StandardCharsets.UTF_8).asScala.mkString("\n")
+      val config = decodeString(configString)
+      if (configString != encodeString(config))
+        saveToPath(path, config)
+      config
     }
   }
 }
@@ -45,6 +81,57 @@ object Config {
   def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
 
   private val spaces2 = Printer.spaces2.copy(colonLeft = "")
+
+  case class Value[A](value: A, description: Option[String])
+
+  object Value {
+
+    trait ValueEncoder {
+      def encode[A](value: Value[A], encoder: Encoder[A]): Json
+    }
+
+    object ValueEncoder {
+
+      object Value extends ValueEncoder {
+        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = encoder(value.value)
+      }
+
+      private def comment[A](value: Value[A]): (String, Json) =
+        "_comment" -> value.description.fold(Json.Null)(Json.fromString)
+
+      object Raw extends ValueEncoder {
+        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = Json.fromFields(List(
+          comment(value),
+          "value" -> encoder(value.value)
+        ))
+      }
+
+      object Comment extends ValueEncoder {
+        override def encode[A](value: Value[A], encoder: Encoder[A]): Json = Json.fromFields(List(
+          comment(value)
+        ))
+      }
+
+    }
+
+    private val localValueEncoder: ThreadLocal[ValueEncoder] = new ThreadLocal()
+
+    def withValueEncoder[A](encoder: ValueEncoder)(f: => A): A = {
+      val prevValueEncoder = localValueEncoder.get()
+      localValueEncoder.set(encoder)
+      val result = f
+      localValueEncoder.set(prevValueEncoder)
+      result
+    }
+
+    implicit def decoder[A: Decoder]: Decoder[Value[A]] = Decoder[A].map(Value(_, None))
+
+    implicit def encoder[A: Encoder]: Encoder[Value[A]] = Encoder.instance { value =>
+      Option(localValueEncoder.get()).getOrElse(ValueEncoder.Value).encode(value, Encoder[A])
+    }
+
+    implicit def fromTuple[A](tuple: (A, String)): Value[A] = Value(tuple._1, Some(tuple._2).filter(_.nonEmpty))
+  }
 
   trait Implicits extends AutoDerivation {
 
