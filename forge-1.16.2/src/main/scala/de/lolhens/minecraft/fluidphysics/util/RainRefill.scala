@@ -102,7 +102,7 @@ object RainRefill {
                             rainRefillOptions: RainRefillConfig): Unit = {
     lazy val chunk: Chunk = world.getChunk(chunkPos.x, chunkPos.z)
 
-    runWithProbability(rainRefillOptions.probability) {
+    runWithProbability(rainRefillOptions.probability.value) {
       val blockPos: BlockPos = getHighestBlock(chunk, Random.nextInt(16), Random.nextInt(16)).down()
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState

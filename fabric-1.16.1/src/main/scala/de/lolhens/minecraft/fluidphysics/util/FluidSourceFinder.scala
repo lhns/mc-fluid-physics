@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object FluidSourceFinder {
-  private def defaultMaxIterations: Int = FluidPhysicsMod.config.findSourceMaxIterations
+  private def defaultMaxIterations: Int = FluidPhysicsMod.config.findSourceMaxIterations.value
 
   def setOf(blockPos: java.util.Collection[BlockPos]): mutable.Set[BlockPos] = blockPos.asScala.to(mutable.Set)
 
@@ -65,7 +65,7 @@ object FluidSourceFinder {
                                  maxIterations: Int,
                                  iteration: Int): Option[BlockPos] = {
     if (iteration > maxIterations ||
-      FluidPhysicsMod.config.findSourceMaxCheckedBlocks.exists(ignoreBlocks.size >= _))
+      FluidPhysicsMod.config.findSourceMaxCheckedBlocks.value.exists(ignoreBlocks.size >= _))
       return None
 
     if (!ignoreFirst && ignoreBlocks.contains(blockPos)) return None
