@@ -1,6 +1,16 @@
+pluginManagement {
+    repositories {
+        jcenter()
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://dl.bintray.com/shedaniel/cloth" }
+        maven { url "https://files.minecraftforge.net/maven/" }
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'mc-fluid-physics'
 
-include ':fabric-1.15.2'
+/*include ':fabric-1.15.2'
 include ':fabric-1.16.1'
 include ':fabric-1.16.2'
 include ':fabric-1.16.4'
@@ -8,4 +18,5 @@ include ':fabric-1.17'
 include ':forge-1.15.2'
 include ':forge-1.16.1'
 include ':forge-1.16.2'
-include ':forge-1.16.4'
+include ':forge-1.16.4'*/
+include ':architectury-1.16.5'
