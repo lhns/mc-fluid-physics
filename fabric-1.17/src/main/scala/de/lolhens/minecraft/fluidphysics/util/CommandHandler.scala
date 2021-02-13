@@ -2,11 +2,10 @@ package de.lolhens.minecraft.fluidphysics.util
 
 import cats.syntax.either._
 import com.mojang.brigadier.context.CommandContext
-import de.lolhens.minecraft.fluidphysics.horizontal
 import de.lolhens.minecraft.fluidphysics.mixin.FlowableFluidAccessor
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
-import net.minecraft.block.{Blocks, FluidBlock, FluidDrainable}
+import net.fabricmc.fabric.api.event.lifecycle.v1.{ServerTickEvents, ServerWorldEvents}
+import net.minecraft.block.{BlockState, Blocks, FluidBlock, FluidDrainable}
 import net.minecraft.fluid.{FlowableFluid, Fluid, Fluids}
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
@@ -14,29 +13,31 @@ import net.minecraft.text.LiteralText
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
+import net.minecraft.world.chunk.Chunk
 
 import java.util.UUID
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 object CommandHandler {
   private implicit def literalText(string: String): LiteralText = new LiteralText(string)
 
-  private var confirmationPending: Map[UUID, PendingCommand] = Map.empty
-  private var ticking: Set[(UUID, PendingCommand)] = Set.empty
+  @volatile private var confirmationPending: Map[UUID, PendingCommand] = Map.empty
+  @volatile private var ticking: Set[(UUID, PendingCommand)] = Set.empty
 
   trait PendingCommand {
     def source: ServerCommandSource
 
     def run(): Either[String, Unit]
 
-    protected final def setTicking(value: Boolean): Unit = {
+    protected final def setTicking(value: Boolean): Unit = CommandHandler.synchronized {
       if (value)
         ticking += (source.getPlayer.getUuid -> this)
       else
         ticking -= (source.getPlayer.getUuid -> this)
     }
 
-    def tick(): Unit
+    def tick(world: World): Unit
 
     def cancel(): Unit
   }
@@ -46,76 +47,89 @@ object CommandHandler {
                                         pos: BlockPos,
                                         fluid: Fluid,
                                         numLayers: Int) extends PendingCommand {
-    val worldQueues: mutable.WeakHashMap[World, (Set[(BlockPos, Fluid)], Set[(BlockPos, Fluid)])] = mutable.WeakHashMap.empty
+    private val minY = pos.getY
+    private val maxY = minY + numLayers - 1
+
+    var chunkQueues: Seq[(Chunk, Set[BlockPos])] = Seq.empty
 
     override def run(): Either[String, Unit] = {
       source.sendFeedback("Starting layer removal", false)
 
-      worldQueues.addOne(world, worldQueues.getOrElse(world, (Set.empty[(BlockPos, Fluid)], Set.empty[(BlockPos, Fluid)])) match {
-        case (highPrioQueue, lowPrioQueue) =>
-          (highPrioQueue.incl((pos, fluid)), lowPrioQueue)
-      })
+      chunkQueues = Seq(world.getChunk(pos) -> Set(pos))
 
       setTicking(true)
 
       Right(())
     }
 
-    override def tick(): Unit = { // Do whole chunks
-      var newHighPrioQueue: Set[(BlockPos, Fluid)] = Set.empty
-      var newLowPrioQueue: Set[(BlockPos, Fluid)] = Set.empty
+    private def drainFluid(world: World, pos: BlockPos, state: BlockState): Unit = state.getBlock match {
+      case fluidDrainable: FluidDrainable if !state.getBlock.isInstanceOf[FluidBlock] =>
+        fluidDrainable.tryDrainFluid(world, pos, state)
 
-      worldQueues.get(world) match {
-        case Some((highPrioQueue, lowPrioQueue)) =>
-          val (thisTickQueue, (nextHighPrioTickQueue, nextLowPrioTickQueue)) = {
-            val (a, b) = highPrioQueue.splitAt(1000)
-            val (c, d) = lowPrioQueue.splitAt(100)
-            (a ++ c, (b, d))
+      case _ =>
+        fluid match {
+          case flowableFluid: FlowableFluid if !state.isAir =>
+            flowableFluid.asInstanceOf[FlowableFluidAccessor].callBeforeBreakingBlock(world, pos, state)
+
+          case _ =>
+        }
+
+        world.setBlockState(pos, Blocks.AIR.getDefaultState, 18)
+    }
+
+    override def tick(tickingWorld: World): Unit = {
+      if (tickingWorld != world) return
+
+      chunkQueues.headOption match {
+        case Some((currentChunk, positions)) =>
+          val chunkQueuesTail = chunkQueues.tail
+
+          val ignoredPositions = mutable.Set.empty[BlockPos]
+          val newQueues: mutable.WeakHashMap[Chunk, mutable.Set[BlockPos]] = mutable.WeakHashMap.empty
+
+          def isCurrentChunkElseQueue(pos: BlockPos): Boolean = {
+            val chunk = world.getChunk(pos)
+            if (chunk == currentChunk) {
+              true
+            } else {
+              newQueues.getOrElseUpdate(chunk, mutable.Set.empty).add(pos)
+              false
+            }
           }
 
-          thisTickQueue.foreach {
-            case (pos, fluid) =>
-              val blockState = world.getBlockState(pos)
-              if (blockState.getFluidState.getFluid.matchesType(fluid)) {
-                blockState.getBlock match {
-                  case fluidDrainable: FluidDrainable if !blockState.getBlock.isInstanceOf[FluidBlock] =>
-                    fluidDrainable.tryDrainFluid(world, pos, blockState)
-
-                  case _ =>
-                    fluid match {
-                      case flowableFluid: FlowableFluid if !blockState.isAir =>
-                        flowableFluid.asInstanceOf[FlowableFluidAccessor].callBeforeBreakingBlock(world, pos, blockState)
-                    }
-
-                    world.setBlockState(pos, Blocks.AIR.getDefaultState)
-                }
-
-                (horizontal.iterator ++ Iterator(Direction.UP)).foreach { direction =>
-                  val offsetPos = pos.offset(direction)
-                  val blockState = world.getBlockState(offsetPos)
-                  if (blockState.getFluidState.getFluid.matchesType(fluid)) {
-                    if (blockState.getFluidState.isStill)
-                      newHighPrioQueue += ((offsetPos, fluid))
-                    else
-                      newLowPrioQueue += ((offsetPos, fluid))
-                  }
-                }
+          @tailrec
+          def rec(positions: Iterator[BlockPos]): Unit = {
+            val nextPositions = positions.iterator
+              .tapEach(ignoredPositions.add)
+              .filter(world.getFluidState(_).getFluid.matchesType(fluid))
+              .flatMap { pos =>
+                if (isCurrentChunkElseQueue(pos)) {
+                  drainFluid(world, pos, world.getBlockState(pos))
+                  Direction.values().iterator.map(pos.offset)
+                    .filter(e => e.getY >= minY && e.getY <= maxY)
+                    .filterNot(ignoredPositions.contains)
+                    .tapEach(ignoredPositions.add)
+                } else
+                  Iterator.empty
               }
+
+            if (nextPositions.nonEmpty) rec(nextPositions.toSeq.iterator)
           }
 
-          newHighPrioQueue = nextHighPrioTickQueue ++ newHighPrioQueue
-          newLowPrioQueue = nextLowPrioTickQueue ++ newLowPrioQueue
+          rec(positions.iterator)
 
-          if (newHighPrioQueue.isEmpty && newLowPrioQueue.isEmpty) {
-            worldQueues.remove(world)
-            setTicking(false)
-            source.sendFeedback("Layer removal finished", false)
-          } else {
-            worldQueues.addOne(world, (newHighPrioQueue, newLowPrioQueue))
-          }
+          chunkQueues = chunkQueuesTail.map {
+            case (chunk, positions) =>
+              val newPositions = newQueues.getOrElse(chunk, Set.empty)
+              newQueues.remove(chunk)
+              (chunk, positions ++ newPositions)
+          } ++ newQueues.iterator.map {
+            case (chunk, set) => (chunk, set.toSet)
+          }.toSeq
 
         case None =>
           setTicking(false)
+          source.sendFeedback("Layer removal finished", false)
       }
     }
 
@@ -143,7 +157,12 @@ object CommandHandler {
 
   def init(): Unit = {
     ServerTickEvents.END_WORLD_TICK.register { world =>
-      ticking.foreach(_._2.tick())
+      ticking.foreach(_._2.tick(world))
+    }
+
+    ServerWorldEvents.UNLOAD.register { (server, world) =>
+      ticking.foreach(_._2.cancel())
+      ticking = Set.empty
     }
 
     CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) => {
