@@ -6,7 +6,9 @@ import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.fluid.IFluidState;
+import net.minecraft.state.properties.Half;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -25,6 +27,15 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     @Shadow
     protected abstract boolean isSameAs(IFluidState state);
 
+    private boolean canFlowDownIntoTrapdoor(BlockState state) {
+        Fluid fluid = (FlowingFluid) (Object) this;
+        if (fluid.isEquivalentTo(Fluids.WATER) && state.getBlock() instanceof TrapDoorBlock) {
+            return !state.get(TrapDoorBlock.WATERLOGGED) &&
+                    (state.get(TrapDoorBlock.HALF) == Half.BOTTOM || state.get(TrapDoorBlock.OPEN));
+        }
+        return false;
+    }
+
     @Inject(at = @At("RETURN"), method = "func_211759_a", cancellable = true)
     private void func_211759_a(IBlockReader world,
                                Fluid fluid,
@@ -33,7 +44,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                                BlockPos fromPos,
                                BlockState fromState,
                                CallbackInfoReturnable<Boolean> info) {
-        if (info.getReturnValue() &&
+        if (canFlowDownIntoTrapdoor(fromState)) {
+            info.setReturnValue(true);
+        } else if (info.getReturnValue() &&
                 FluidPhysicsMod.config().enabledFor(fluid) &&
                 FluidPhysicsMod.config().getFlowOverSources()) {
             IFluidState fluidState = fromState.getFluidState();
@@ -53,14 +66,14 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            IFluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
-        if (flowDirection == Direction.DOWN &&
-                FluidPhysicsMod.config().enabledFor(fluid) &&
-                ((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) &&
-                !fluidState.isSource()) {
-            info.setReturnValue(true);
+        if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
+            if (((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) && !fluidState.isSource()) {
+                info.setReturnValue(true);
+            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
+                info.setReturnValue(true);
+            }
         }
     }
-
 
     @Inject(at = @At("HEAD"), method = "calculateCorrectFlowingState")
     protected void calculateCorrectFlowingState(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<IFluidState> info) {
@@ -104,7 +117,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                 if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
                     ((IBucketPickupHandler) sourceState.getBlock()).pickupFluid(world, sourcePos.get(), sourceState);
                 } else {
-                    if (!sourceState.isAir(world, sourcePos.get())) { // TODO: test
+                    if (!sourceState.isAir(world, sourcePos.get())) {
                         this.callBeforeReplacingBlock(world, sourcePos.get(), sourceState);
                     }
 
@@ -115,7 +128,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                 if (state.getBlock() instanceof ILiquidContainer) {
                     ((ILiquidContainer) state.getBlock()).receiveFluid(world, pos, state, still);
                 } else {
-                    if (!state.isAir(world, pos)) { // TODO: test
+                    if (!state.isAir(world, pos)) {
                         this.callBeforeReplacingBlock(world, pos, state);
                     }
 

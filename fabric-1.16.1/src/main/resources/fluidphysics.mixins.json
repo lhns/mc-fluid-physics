@@ -10,6 +10,7 @@
     "PistonBlockMixin",
     "SpringFeatureMixin",
     "ThreadedAnvilChunkStorageAccessor",
+    "TrapdoorBlockMixin",
     "WaterFluidMixin"
   ],
   "client": [

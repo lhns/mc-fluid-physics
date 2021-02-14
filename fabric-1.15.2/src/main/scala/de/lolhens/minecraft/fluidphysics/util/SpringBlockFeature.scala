@@ -11,14 +11,15 @@ object SpringBlockFeature {
                springFeatureConfig: SpringFeatureConfig): Unit =
     FluidPhysicsMod.config.spring.map(_.getBlock) match {
       case Some(springBlock) =>
-        def isAir(direction: Direction): Boolean =
-          world.isAir(blockPos.offset(direction))
+        def isAir(direction: Direction, offset: Int = 1): Boolean =
+          world.isAir(blockPos.offset(direction, offset))
 
         def isValidBlock(direction: Direction): Boolean =
           springFeatureConfig.validBlocks.contains(world.getBlockState(blockPos.offset(direction)).getBlock)
 
         val preferredDirections =
-          horizontal.toSeq.filter(isAir).map(_.getOpposite).filter(isValidBlock).sortBy { direction =>
+          (horizontal.iterator.filter(isAir(_)) ++ horizontal.iterator.filter(isAir(_, 2)))
+            .map(_.getOpposite).filter(isValidBlock).toSeq.sortBy { direction =>
             (if (isValidBlock(direction.rotateYClockwise())) 1 else 0) +
               (if (isValidBlock(direction.rotateYCounterclockwise())) 1 else 0)
           }.reverse ++

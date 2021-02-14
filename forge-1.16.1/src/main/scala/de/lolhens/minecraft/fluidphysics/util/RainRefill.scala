@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 object RainRefill {
-  def register(): Unit = {
+  def init(): Unit = {
     MinecraftForge.EVENT_BUS.addListener { event: TickEvent.WorldTickEvent =>
       (event.phase, event.world) match {
         case (Phase.END, serverWorld: ServerWorld) =>

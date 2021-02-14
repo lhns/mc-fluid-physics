@@ -8,9 +8,11 @@ import net.minecraft.block.Block
 import net.minecraft.fluid.{Fluid, Fluids}
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.registry.Registry
+import net.minecraft.util.registry.{BuiltinRegistries, Registry}
 import net.minecraft.world.World
 import net.minecraft.world.biome.Biome
+
+import scala.jdk.CollectionConverters._
 
 case class FluidPhysicsConfig(
                                updateConfig: Commented[Boolean] = true ->
@@ -26,7 +28,10 @@ case class FluidPhysicsConfig(
                                  "Maximum number of blocks to check when finding the fluid source block",
 
                                biomeDependentFluidInfinity: Commented[Boolean] = false ->
-                                 "Infinite fluid sources will be enabled in river and ocean biomes",
+                                 "Infinite fluid sources will be enabled in the specified biomes",
+
+                               biomeDependentFluidInfinityWhitelist: Commented[Seq[Identifier]] = FluidPhysicsConfig.defaultBiomes.map(_._1) ->
+                                 "Infinite fluid sources will be enabled in these biomes (river and ocean biomes by default)",
 
                                flowOverSources: Commented[Boolean] = true ->
                                  "Fluids will flow over source blocks",
@@ -40,6 +45,10 @@ case class FluidPhysicsConfig(
                              ) {
   lazy val getFluidWhitelist: Seq[Fluid] = fluidWhitelist.value.map(registryGet(Registry.FLUID, _))
 
+  lazy val getFluidInfinityBiomes: Option[Set[Identifier]] = Option.when(biomeDependentFluidInfinity.value)(
+    biomeDependentFluidInfinityWhitelist.value.toSet
+  )
+
   def getFlowOverSources: Boolean = flowOverSources.value
 
   def getDebugFluidState: Boolean = debugFluidState.value
@@ -49,6 +58,15 @@ case class FluidPhysicsConfig(
 
 object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
   override val default: FluidPhysicsConfig = FluidPhysicsConfig()
+
+  private lazy val defaultBiomes: Seq[(Identifier, Biome)] =
+    BuiltinRegistries.BIOME.getEntries.iterator.asScala.map(e => (e.getKey.getValue, e.getValue))
+      .filter {
+        case (_, biome) =>
+          val category = biome.getCategory
+          category == Biome.Category.OCEAN || category == Biome.Category.RIVER
+      }
+      .toSeq
 
   override def updateConfig(config: FluidPhysicsConfig): Boolean = config.updateConfig.value
 

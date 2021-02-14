@@ -1,6 +1,7 @@
 package de.lolhens.minecraft.fluidphysics
 
 import de.lolhens.minecraft.fluidphysics.block.SpringBlock
+import de.lolhens.minecraft.fluidphysics.command.CommandHandler
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig
 import de.lolhens.minecraft.fluidphysics.util.RainRefill
 import net.minecraft.block.material.Material
@@ -36,5 +37,6 @@ object FluidPhysicsMod {
     itemRegistryEvent.getRegistry.register(new BlockItem(SPRING_BLOCK, new Item.Properties().group(ItemGroup.BUILDING_BLOCKS)).setRegistryName(SPRING_BLOCK_ID))
   })
 
-  RainRefill.register()
+  RainRefill.init()
+  CommandHandler.init()
 }
