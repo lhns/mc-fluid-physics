@@ -4,8 +4,8 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import net.minecraft.fluid.Fluid
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IWorldReader
-import net.minecraft.world.biome.Biome
+import net.minecraft.world.{IWorldReader, World}
+import net.minecraftforge.registries.ForgeRegistries
 
 import scala.jdk.CollectionConverters._
 
@@ -31,17 +31,19 @@ object FluidIsInfinite {
           (Direction.DOWN +: horizontal).exists { direction =>
             world.getBlockState(pos.offset(direction)).getBlock == spring.getBlock
           }
-        case _ =>
-          false
+
+        case _ => false
       }
 
-      val isBiome =
-        if (FluidPhysicsMod.config.biomeDependentFluidInfinity.value) {
-          val biomeCategory = world.getBiome(pos).getCategory
-          biomeCategory == Biome.Category.OCEAN || biomeCategory == Biome.Category.RIVER
-        } else {
-          false
-        }
+      val isBiome = world match {
+        case world: World =>
+          FluidPhysicsMod.config.getFluidInfinityBiomes.exists { biomes =>
+            val biome = ForgeRegistries.BIOMES.getKey(world.getBiome(pos))
+            biomes.contains(biome)
+          }
+
+        case _ => false
+      }
 
       nextToSpring || isBiome
     } else {

@@ -7,6 +7,7 @@ import net.minecraft.block.*;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.state.properties.Half;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -25,6 +26,14 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     @Shadow
     protected abstract boolean isSameAs(FluidState state);
 
+    private boolean canFlowDownIntoTrapdoor(BlockState state) {
+        if (state.getBlock() instanceof TrapDoorBlock) {
+            return !state.get(TrapDoorBlock.WATERLOGGED) &&
+                    (state.get(TrapDoorBlock.HALF) == Half.BOTTOM || state.get(TrapDoorBlock.OPEN));
+        }
+        return false;
+    }
+
     @Inject(at = @At("RETURN"), method = "func_211759_a", cancellable = true)
     private void func_211759_a(IBlockReader world,
                                Fluid fluid,
@@ -33,7 +42,9 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                                BlockPos fromPos,
                                BlockState fromState,
                                CallbackInfoReturnable<Boolean> info) {
-        if (info.getReturnValue() &&
+        if (canFlowDownIntoTrapdoor(fromState)) {
+            info.setReturnValue(true);
+        } else if (info.getReturnValue() &&
                 FluidPhysicsMod.config().enabledFor(fluid) &&
                 FluidPhysicsMod.config().getFlowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
@@ -53,14 +64,14 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                            FluidState fluidState,
                            Fluid fluid,
                            CallbackInfoReturnable<Boolean> info) {
-        if (flowDirection == Direction.DOWN &&
-                FluidPhysicsMod.config().enabledFor(fluid) &&
-                ((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) &&
-                !fluidState.isSource()) {
-            info.setReturnValue(true);
+        if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
+            if (((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) && !fluidState.isSource()) {
+                info.setReturnValue(true);
+            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) { // TODO: Doesn't update when Trapdoor state changes
+                info.setReturnValue(true);
+            }
         }
     }
-
 
     @Inject(at = @At("HEAD"), method = "calculateCorrectFlowingState")
     protected void calculateCorrectFlowingState(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> info) {
