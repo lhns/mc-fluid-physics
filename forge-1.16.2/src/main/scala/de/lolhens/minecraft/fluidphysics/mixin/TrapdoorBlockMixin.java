@@ -34,14 +34,14 @@ public class TrapdoorBlockMixin {
         }
     }
 
-    @Inject(at = @At("RETURN"), method = "neighborUpdate", cancellable = true)
-    public void neighborUpdate(BlockState state,
-                               World world,
-                               BlockPos pos,
-                               Block block,
-                               BlockPos fromPos,
-                               boolean notify,
-                               CallbackInfo info) {
+    @Inject(at = @At("RETURN"), method = "neighborChanged", cancellable = true)
+    public void neighborChanged(BlockState state,
+                                World world,
+                                BlockPos pos,
+                                Block block,
+                                BlockPos fromPos,
+                                boolean notify,
+                                CallbackInfo info) {
         if (!world.isRemote) {
             world.neighborChanged(pos.up(), world.getBlockState(pos).getBlock(), pos);
         }
