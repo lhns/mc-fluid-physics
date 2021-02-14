@@ -8,6 +8,7 @@ import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.fluid.BaseFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
@@ -32,7 +33,8 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     protected abstract boolean isMatchingAndStill(FluidState state);
 
     private boolean canFlowDownIntoTrapdoor(BlockState state) {
-        if (state.getBlock() instanceof TrapdoorBlock) {
+        Fluid fluid = (BaseFluid) (Object) this;
+        if (fluid.matchesType(Fluids.WATER) && state.getBlock() instanceof TrapdoorBlock) {
             return !state.get(TrapdoorBlock.WATERLOGGED) &&
                     (state.get(TrapdoorBlock.HALF) == BlockHalf.BOTTOM || state.get(TrapdoorBlock.OPEN));
         }

@@ -6,6 +6,7 @@ import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.fluid.IFluidState;
 import net.minecraft.state.properties.Half;
 import net.minecraft.util.Direction;
@@ -27,7 +28,8 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     protected abstract boolean isSameAs(IFluidState state);
 
     private boolean canFlowDownIntoTrapdoor(BlockState state) {
-        if (state.getBlock() instanceof TrapDoorBlock) {
+        Fluid fluid = (FlowingFluid) (Object) this;
+        if (fluid.isEquivalentTo(Fluids.WATER) && state.getBlock() instanceof TrapDoorBlock) {
             return !state.get(TrapDoorBlock.WATERLOGGED) &&
                     (state.get(TrapDoorBlock.HALF) == Half.BOTTOM || state.get(TrapDoorBlock.OPEN));
         }
