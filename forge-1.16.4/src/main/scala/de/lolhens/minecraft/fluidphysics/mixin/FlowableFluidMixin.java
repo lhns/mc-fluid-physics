@@ -67,7 +67,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
             if (((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) && !fluidState.isSource()) {
                 info.setReturnValue(true);
-            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) { // TODO: Doesn't update when Trapdoor state changes
+            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
                 info.setReturnValue(true);
             }
         }
@@ -115,7 +115,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                 if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
                     ((IBucketPickupHandler) sourceState.getBlock()).pickupFluid(world, sourcePos.get(), sourceState);
                 } else {
-                    if (!sourceState.getBlock().isAir(sourceState, world, sourcePos.get())) { // TODO: test
+                    if (!sourceState.getBlock().isAir(sourceState, world, sourcePos.get())) {
                         this.callBeforeReplacingBlock(world, sourcePos.get(), sourceState);
                     }
 
@@ -126,7 +126,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                 if (state.getBlock() instanceof ILiquidContainer) {
                     ((ILiquidContainer) state.getBlock()).receiveFluid(world, pos, state, still);
                 } else {
-                    if (!state.getBlock().isAir(state, world, pos)) { // TODO: test
+                    if (!state.getBlock().isAir(state, world, pos)) {
                         this.callBeforeReplacingBlock(world, pos, state);
                     }
 

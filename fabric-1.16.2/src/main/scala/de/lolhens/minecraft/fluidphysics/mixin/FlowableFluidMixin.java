@@ -73,7 +73,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
             if (((FlowableFluid) (Object) this).matchesType(fluidState.getFluid()) && !fluidState.isStill()) {
                 info.setReturnValue(true);
-            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) { // TODO: Doesn't update when Trapdoor state changes
+            } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
                 info.setReturnValue(true);
             }
         }
