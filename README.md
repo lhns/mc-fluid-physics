@@ -7,6 +7,8 @@
 
 This mod blends together vanilla fluid mechanics with something a little more realistic plus some small additions.
 Fluids flowing horizontally will not be affected by this mod. Fluids flowing down will take the source with them.
+This is intentionally not a realistic fluid simulation in order to not break too much of the vanilla gameplay.
+If you want something more realistic look in the "Similar mods" section down below.
 
 ## Features
 - Fluid source blocks can flow down
@@ -45,7 +47,9 @@ These are the previous iterations of this mod:
 - https://github.com/LolHens/Minechanics
 
 ## Similar mods
-If you are looking for a similar mod with more realism have a look at [Dihydrogen Monoxide Reloaded by CoolMineman](https://github.com/CoolMineman/Dihydrogen-Monoxide-Reloaded)
+If you are looking for a similar mod for fabric with more realism have a look at [Dihydrogen Monoxide Reloaded by CoolMineman](https://www.curseforge.com/minecraft/mc-mods/dihydrogen-monoxide-reloaded)
+
+Also there is the similarly realistic forge mod [PhysEx](https://www.curseforge.com/minecraft/mc-mods/physex)
 
 ## License
 This project uses the Apache 2.0 License. See the file called LICENSE.
