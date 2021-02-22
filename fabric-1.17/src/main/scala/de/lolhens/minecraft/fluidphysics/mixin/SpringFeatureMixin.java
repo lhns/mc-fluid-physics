@@ -15,7 +15,7 @@ public class SpringFeatureMixin {
     public void generate(FeatureContext<SpringFeatureConfig> featureContext,
                          CallbackInfoReturnable<Boolean> info) {
         if (info.getReturnValue()) {
-            SpringBlockFeature.generate(featureContext.getWorld(), featureContext.getPos(), featureContext.getConfig());
+            SpringBlockFeature.generate(featureContext.getWorld(), featureContext.getOrigin(), featureContext.getConfig());
         }
     }
 }
