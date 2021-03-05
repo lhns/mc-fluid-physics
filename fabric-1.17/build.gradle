@@ -8,7 +8,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath group: 'net.fabricmc', name: 'fabric-loom', version: '0.6.9'
+        classpath group: 'net.fabricmc', name: 'fabric-loom', version: '0.7.3'
     }
 }
 apply plugin: 'fabric-loom'
@@ -36,12 +36,12 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "net.fabricmc:fabric-language-scala:0.3.1.+"
+    modImplementation "net.fabricmc:fabric-language-scala:1.0.0"
 
     shadow "io.circe:circe-parser_2.13:0.13.0"
     shadow "io.circe:circe-generic_2.13:0.13.0"
     shadow "io.circe:circe-generic-extras_2.13:0.13.0"
-    shadow "io.circe:circe-config_2.13:0.7.0"
+    shadow "io.circe:circe-config_2.13:0.8.0"
 
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
 
