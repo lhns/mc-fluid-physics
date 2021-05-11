@@ -60,7 +60,7 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
   override val default: FluidPhysicsConfig = FluidPhysicsConfig()
 
   private lazy val defaultBiomes: Seq[(ResourceLocation, Biome)] =
-    ForgeRegistries.BIOMES.getEntries.iterator.asScala.map(e => (e.getKey.getRegistryName, e.getValue))
+    ForgeRegistries.BIOMES.getEntries.iterator.asScala.map(e => (e.getKey.location, e.getValue))
       .filter {
         case (_, biome) =>
           val category = biome.getBiomeCategory
