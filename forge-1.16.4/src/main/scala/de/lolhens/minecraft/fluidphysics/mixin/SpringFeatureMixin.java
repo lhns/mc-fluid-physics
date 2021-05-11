@@ -15,13 +15,13 @@ import java.util.Random;
 
 @Mixin(SpringFeature.class)
 public class SpringFeatureMixin {
-    @Inject(at = @At("RETURN"), method = "generate", cancellable = true)
-    public void generate(ISeedReader structureWorldAccess,
-                         ChunkGenerator chunkGenerator,
-                         Random random,
-                         BlockPos blockPos,
-                         LiquidsConfig springFeatureConfig,
-                         CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("RETURN"), method = "place", cancellable = true)
+    public void place(ISeedReader structureWorldAccess,
+                      ChunkGenerator chunkGenerator,
+                      Random random,
+                      BlockPos blockPos,
+                      LiquidsConfig springFeatureConfig,
+                      CallbackInfoReturnable<Boolean> info) {
         if (info.getReturnValue()) {
             SpringBlockFeature.generate(structureWorldAccess, blockPos, springFeatureConfig);
         }

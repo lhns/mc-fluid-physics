@@ -26,7 +26,7 @@ case class RemoveLayersCommand(source: CommandSource,
   var chunkQueues: Seq[(IChunk, Set[BlockPos])] = Seq.empty
 
   override def run(): Either[String, Unit] = {
-    source.sendFeedback("Starting layer removal", false)
+    source.sendSuccess("Starting layer removal", false)
 
     chunkQueues = Seq(world.getChunk(pos) -> Set(pos))
 
@@ -37,17 +37,17 @@ case class RemoveLayersCommand(source: CommandSource,
 
   private def drainFluid(world: World, pos: BlockPos, state: BlockState): Unit = state.getBlock match {
     case fluidDrainable: IBucketPickupHandler if !state.getBlock.isInstanceOf[FlowingFluidBlock] =>
-      fluidDrainable.pickupFluid(world, pos, state)
+      fluidDrainable.takeLiquid(world, pos, state)
 
     case _ =>
       fluid match {
         case flowableFluid: FlowingFluid if !state.getBlock.isAir(state, world, pos) =>
-          flowableFluid.asInstanceOf[FlowableFluidAccessor].callBeforeReplacingBlock(world, pos, state)
+          flowableFluid.asInstanceOf[FlowableFluidAccessor].callBeforeDestroyingBlock(world, pos, state)
 
         case _ =>
       }
 
-      world.setBlockState(pos, Blocks.AIR.getDefaultState, 18)
+      world.setBlock(pos, Blocks.AIR.defaultBlockState, 18)
   }
 
   override def tick(worldContext: World): Unit = {
@@ -74,11 +74,11 @@ case class RemoveLayersCommand(source: CommandSource,
         def rec(positions: Iterator[BlockPos]): Unit = {
           val nextPositions = positions.iterator
             .tapEach(ignoredPositions.add)
-            .filter(world.getFluidState(_).getFluid.isEquivalentTo(fluid))
+            .filter(world.getFluidState(_).getType.isSame(fluid))
             .flatMap { pos =>
               if (isCurrentChunkElseQueue(pos)) {
                 drainFluid(world, pos, world.getBlockState(pos))
-                Direction.values().iterator.map(pos.offset)
+                Direction.values().iterator.map(pos.relative)
                   .filter(e => e.getY >= minY && e.getY <= maxY)
                   .filterNot(ignoredPositions.contains)
                   .tapEach(ignoredPositions.add)
@@ -102,7 +102,7 @@ case class RemoveLayersCommand(source: CommandSource,
 
       case None =>
         setTicking(false)
-        source.sendFeedback("Layer removal finished", false)
+        source.sendSuccess("Layer removal finished", false)
     }
   }
 
@@ -110,21 +110,21 @@ case class RemoveLayersCommand(source: CommandSource,
     if (!worldContext.forall(_ == world)) return
 
     setTicking(false)
-    source.sendFeedback("Layer removal cancelled for this world", false)
+    source.sendSuccess("Layer removal cancelled for this world", false)
   }
 }
 
 object RemoveLayersCommand {
   def execute(context: CommandContext[CommandSource]): Either[String, Unit] = {
-    val player = context.getSource.asPlayer
-    val world = player.getServerWorld
-    val pos = player.getPosition
-    val fluidOption = Some(world.getFluidState(pos).getFluid).filter(_ != Fluids.EMPTY)
+    val player = context.getSource.getPlayerOrException
+    val world = player.getLevel
+    val pos = player.blockPosition
+    val fluidOption = Some(world.getFluidState(pos).getType).filter(_ != Fluids.EMPTY)
     fluidOption
       .toRight("Player not standing in a fluid!")
       .map { fluid =>
-        val numLayers = Iterator.iterate(pos)(_.up()).takeWhile(world.getFluidState(_).getFluid.isEquivalentTo(fluid)).length
-        context.getSource.sendFeedback(s"Removing $numLayers layers for ${ForgeRegistries.FLUIDS.getKey(fluid)} at $pos\n$typeConfirm", false)
+        val numLayers = Iterator.iterate(pos)(_.above).takeWhile(world.getFluidState(_).getType.isSame(fluid)).length
+        context.getSource.sendSuccess(s"Removing $numLayers layers for ${ForgeRegistries.FLUIDS.getKey(fluid)} at $pos\n$typeConfirm", false)
         addPending(player, RemoveLayersCommand(context.getSource, world, pos, fluid, numLayers))
       }
   }

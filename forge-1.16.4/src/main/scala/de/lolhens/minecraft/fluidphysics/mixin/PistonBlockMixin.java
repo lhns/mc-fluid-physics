@@ -20,50 +20,50 @@ import java.util.Set;
 
 @Mixin(PistonBlock.class)
 public abstract class PistonBlockMixin {
-    @Inject(at = @At("HEAD"), method = "canPush", cancellable = true)
-    private static void canPush(BlockState state,
-                                World world,
-                                BlockPos pos,
-                                Direction motionDir,
-                                boolean canBreak,
-                                Direction pistonDir,
-                                CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("HEAD"), method = "isPushable", cancellable = true)
+    private static void isPushable(BlockState state,
+                                   World world,
+                                   BlockPos pos,
+                                   Direction motionDir,
+                                   boolean canBreak,
+                                   Direction pistonDir,
+                                   CallbackInfoReturnable<Boolean> info) {
         FluidState fluidState = state.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
                 fluidState.isSource()) {
-            BlockPos nextBlockPos = pos.offset(motionDir);
+            BlockPos nextBlockPos = pos.relative(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
             if (!(nextBlockState.isAir(world, nextBlockPos) ||
-                    nextBlockState.getFluidState().getFluid().isEquivalentTo(fluidState.getFluid()) ||
-                    nextBlockState.getPushReaction() == PushReaction.DESTROY)) {
+                    nextBlockState.getFluidState().getType().isSame(fluidState.getType()) ||
+                    nextBlockState.getPistonPushReaction() == PushReaction.DESTROY)) {
                 info.setReturnValue(false);
             }
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "doMove", cancellable = true)
-    private void doMove(World world,
-                        BlockPos pos,
-                        Direction dir,
-                        boolean retract,
-                        CallbackInfoReturnable<Boolean> info) {
-        BlockPos blockPos = pos.offset(dir);
-        if (!retract && world.getBlockState(blockPos).isIn(Blocks.PISTON_HEAD)) {
-            world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 20);
+    @Inject(at = @At("HEAD"), method = "moveBlocks", cancellable = true)
+    private void moveBlocks(World world,
+                            BlockPos pos,
+                            Direction dir,
+                            boolean retract,
+                            CallbackInfoReturnable<Boolean> info) {
+        BlockPos blockPos = pos.relative(dir);
+        if (!retract && world.getBlockState(blockPos).is(Blocks.PISTON_HEAD)) {
+            world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 20);
         }
 
         PistonBlockStructureHelper pistonHandler = new PistonBlockStructureHelper(world, pos, dir, retract);
-        if (!pistonHandler.canMove()) {
+        if (!pistonHandler.resolve()) {
             info.setReturnValue(false);
         } else {
             Direction oppositeDir = dir.getOpposite();
 
             Set<BlockPos> blockPosSet = new HashSet<>();
             blockPosSet.add(blockPos);
-            for (BlockPos movedBlockPos : pistonHandler.getBlocksToMove()) {
+            for (BlockPos movedBlockPos : pistonHandler.getToPush()) {
                 blockPosSet.add(movedBlockPos);
-                blockPosSet.add(movedBlockPos.offset(dir));
+                blockPosSet.add(movedBlockPos.relative(dir));
             }
 
             for (BlockPos currentBlockPos : blockPosSet) {
@@ -71,14 +71,14 @@ public abstract class PistonBlockMixin {
                 FluidState fluidState = blockState.getFluidState();
 
                 if (!fluidState.isEmpty() &&
-                        FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
-                        fluidState.getFluid() instanceof FlowingFluid && !fluidState.isSource()) {
-                    FlowingFluid fluid = (FlowingFluid) fluidState.getFluid();
+                        FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                        fluidState.getType() instanceof FlowingFluid && !fluidState.isSource()) {
+                    FlowingFluid fluid = (FlowingFluid) fluidState.getType();
 
                     Option<BlockPos> sourcePos = FluidSourceFinder.findSource(
                             world,
                             currentBlockPos,
-                            fluidState.getFluid(),
+                            fluidState.getType(),
                             oppositeDir,
                             FluidSourceFinder.setOf(blockPosSet),
                             true,
@@ -86,32 +86,32 @@ public abstract class PistonBlockMixin {
                     );
 
                     if (sourcePos.isDefined()) {
-                        FluidState still = fluid.getStillFluidState(false);
-                        int newSourceLevel = still.getLevel() - 1;
-                        FluidState newSourceFluidState = fluid.getFlowingFluidState(newSourceLevel, false);
+                        FluidState still = fluid.getSource(false);
+                        int newSourceLevel = still.getAmount() - 1;
+                        FluidState newSourceFluidState = fluid.getFlowing(newSourceLevel, false);
 
                         BlockState sourceState = world.getBlockState(sourcePos.get());
 
                         // Drain source block
                         if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
-                            ((IBucketPickupHandler) sourceState.getBlock()).pickupFluid(world, sourcePos.get(), sourceState);
+                            ((IBucketPickupHandler) sourceState.getBlock()).takeLiquid(world, sourcePos.get(), sourceState);
                         } else {
                             if (!sourceState.isAir(world, sourcePos.get())) {
-                                ((FlowableFluidAccessor) fluid).callBeforeReplacingBlock(world, sourcePos.get(), sourceState);
+                                ((FlowableFluidAccessor) fluid).callBeforeDestroyingBlock(world, sourcePos.get(), sourceState);
                             }
 
-                            world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
+                            world.setBlock(sourcePos.get(), newSourceFluidState.createLegacyBlock(), 3);
                         }
 
                         // Flow source block to new position
-                        if (fluidState.getBlockState().getBlock() instanceof ILiquidContainer) {
-                            ((ILiquidContainer) blockState.getBlock()).receiveFluid(world, currentBlockPos, blockState, still);
+                        if (fluidState.createLegacyBlock().getBlock() instanceof ILiquidContainer) {
+                            ((ILiquidContainer) blockState.getBlock()).placeLiquid(world, currentBlockPos, blockState, still);
                         } else {
                             if (!blockState.isAir(world, currentBlockPos)) {
-                                ((FlowableFluidAccessor) fluid).callBeforeReplacingBlock(world, currentBlockPos, blockState);
+                                ((FlowableFluidAccessor) fluid).callBeforeDestroyingBlock(world, currentBlockPos, blockState);
                             }
 
-                            world.setBlockState(currentBlockPos, still.getBlockState(), 3);
+                            world.setBlock(currentBlockPos, still.createLegacyBlock(), 3);
                         }
                     }
                 }

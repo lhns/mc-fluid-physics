@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(WaterFluid.class)
 public class WaterFluidMixin {
-    @Inject(at = @At("HEAD"), method = "canSourcesMultiply", cancellable = true)
-    protected void canSourcesMultiply(CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("HEAD"), method = "canConvertToSource", cancellable = true)
+    protected void canConvertToSource(CallbackInfoReturnable<Boolean> info) {
         if (!FluidIsInfinite.isInfinite(Fluids.WATER)) {
             info.setReturnValue(false);
         }

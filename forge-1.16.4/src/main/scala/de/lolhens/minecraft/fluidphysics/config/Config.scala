@@ -145,7 +145,7 @@ object Config {
     private val customConfig: Configuration = Configuration.default.withDefaults
 
     private val identifierCodec: Codec[ResourceLocation] = Codec.from(
-      Decoder.decodeString.map(ResourceLocation.tryCreate),
+      Decoder.decodeString.map(ResourceLocation.tryParse),
       Encoder.encodeString.contramap[ResourceLocation](_.toString)
     )
   }

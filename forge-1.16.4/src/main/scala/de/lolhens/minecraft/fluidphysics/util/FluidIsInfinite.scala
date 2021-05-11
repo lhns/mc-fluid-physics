@@ -29,7 +29,7 @@ object FluidIsInfinite {
       val nextToSpring = FluidPhysicsMod.config.spring match {
         case Some(spring) if spring.allowInfiniteWater.value =>
           (Direction.DOWN +: horizontal).exists { direction =>
-            world.getBlockState(pos.offset(direction)).isIn(spring.getBlock)
+            world.getBlockState(pos.relative(direction)).is(spring.getBlock)
           }
 
         case _ => false
@@ -38,7 +38,7 @@ object FluidIsInfinite {
       val isBiome = world match {
         case world: World =>
           FluidPhysicsMod.config.getFluidInfinityBiomes.exists { biomes =>
-            val biome = world.func_241828_r.getRegistry(Registry.BIOME_KEY).getKey(world.getBiome(pos))
+            val biome = world.registryAccess.registryOrThrow(Registry.BIOME_REGISTRY).getKey(world.getBiome(pos))
             biomes.contains(biome)
           }
 

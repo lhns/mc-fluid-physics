@@ -1,12 +1,12 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://dist.creeper.host/Sponge/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
         classpath 'de.lolhens:java-mixin-stubber:0.0.2'
     }
@@ -103,7 +103,10 @@ configurations {
 }
 
 repositories {
-    maven { url = 'https://minecraft.curseforge.com/api/maven/' }
+    maven {
+        url = 'https://minecraft.curseforge.com/api/maven/'
+        metadataSources { artifact() }
+    }
 }
 
 dependencies {
@@ -158,7 +161,7 @@ jar {
                 "Specification-Vendor"    : mod_author,
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : version,
+                "Implementation-Version"  : "${version}",
                 "Implementation-Vendor"   : mod_author,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 "MixinConfigs"            : "${mod_id}.mixins.json"

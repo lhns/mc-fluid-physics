@@ -14,14 +14,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(AbstractBlock.AbstractBlockState.class)
 public abstract class AbstractBlockStateMixin {
     @Shadow
-    public abstract BlockState getSelf();
+    public abstract BlockState asState();
 
-    @Inject(at = @At("HEAD"), method = "getPushReaction", cancellable = true)
-    public void getPushReaction(CallbackInfoReturnable<PushReaction> info) {
-        BlockState blockState = getSelf();
+    @Inject(at = @At("HEAD"), method = "getPistonPushReaction", cancellable = true)
+    public void getPistonPushReaction(CallbackInfoReturnable<PushReaction> info) {
+        BlockState blockState = asState();
         FluidState fluidState = blockState.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
                 fluidState.isSource()) {
             info.setReturnValue(PushReaction.PUSH_ONLY);
         }

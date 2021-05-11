@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(ChunkManager.class)
 public interface ThreadedAnvilChunkStorageAccessor {
     @Invoker
-    Iterable<ChunkHolder> callGetLoadedChunksIterable();
+    Iterable<ChunkHolder> callGetChunks();
 }

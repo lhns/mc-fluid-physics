@@ -13,22 +13,22 @@ object SpringBlockFeature {
     FluidPhysicsMod.config.spring.map(_.getBlock) match {
       case Some(springBlock) =>
         def isAir(direction: Direction, offset: Int = 1): Boolean =
-          world.isAirBlock(blockPos.offset(direction, offset))
+          world.isEmptyBlock(blockPos.relative(direction, offset))
 
         def isValidBlock(direction: Direction): Boolean =
-          springFeatureConfig.acceptedBlocks.contains(world.getBlockState(blockPos.offset(direction)).getBlock)
+          springFeatureConfig.validBlocks.contains(world.getBlockState(blockPos.relative(direction)).getBlock)
 
         val preferredDirections =
           (horizontal.iterator.filter(isAir(_)) ++ horizontal.iterator.filter(isAir(_, 2)))
             .map(_.getOpposite).filter(isValidBlock).toSeq.sortBy { direction =>
-            (if (isValidBlock(direction.rotateY())) 1 else 0) +
-              (if (isValidBlock(direction.rotateYCCW())) 1 else 0)
+            (if (isValidBlock(direction.getClockWise)) 1 else 0) +
+              (if (isValidBlock(direction.getCounterClockWise)) 1 else 0)
           }.reverse ++
             Seq(Direction.DOWN).filter(isValidBlock)
 
         val direction = preferredDirections.headOption.getOrElse(horizontal.find(isValidBlock).get)
 
-        world.setBlockState(blockPos.offset(direction), springBlock.getDefaultState, 2)
+        world.setBlock(blockPos.relative(direction), springBlock.defaultBlockState, 2)
 
       case _ =>
     }

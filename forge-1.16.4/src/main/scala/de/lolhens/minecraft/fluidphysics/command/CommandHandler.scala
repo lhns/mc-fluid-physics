@@ -30,9 +30,9 @@ object CommandHandler {
 
     protected final def setTicking(value: Boolean): Unit = CommandHandler.synchronized {
       if (value)
-        ticking += (source.asPlayer.getUniqueID -> this)
+        ticking += (source.getPlayerOrException.getUUID -> this)
       else
-        ticking -= (source.asPlayer.getUniqueID -> this)
+        ticking -= (source.getPlayerOrException.getUUID -> this)
     }
 
     def tick(world: World): Unit
@@ -41,16 +41,16 @@ object CommandHandler {
   }
 
   def addPending(player: PlayerEntity, command: Command): Unit =
-    confirmationPending += (player.getUniqueID -> command)
+    confirmationPending += (player.getUUID -> command)
 
   private def isOperator(source: CommandSource): Boolean =
-    source.getServer.getPlayerList.canSendCommands(source.asPlayer.getGameProfile)
+    source.getServer.getPlayerList.isOp(source.getPlayerOrException.getGameProfile)
 
   private def commandResult(either: Either[String, Unit])
                            (implicit context: CommandContext[CommandSource]): Int = either match {
     case Right(_) => 1
     case Left(error) =>
-      context.getSource.sendErrorMessage(error)
+      context.getSource.sendFailure(error)
       -1
   }
 
@@ -88,26 +88,26 @@ object CommandHandler {
           }))
           .`then`(literal("confirm").executes(implicit context => commandResult {
             mustBeOperator {
-              val player = context.getSource.asPlayer
-              confirmationPending.get(player.getUniqueID)
+              val player = context.getSource.getPlayerOrException
+              confirmationPending.get(player.getUUID)
                 .toRight("No pending command!")
                 .map { pending =>
-                  confirmationPending -= player.getUniqueID
+                  confirmationPending -= player.getUUID
                   pending.run()
                 }
             }
           }))
           .`then`(literal("cancel").executes(implicit context => commandResult {
             mustBeOperator {
-              val player = context.getSource.asPlayer
-              confirmationPending.get(player.getUniqueID)
+              val player = context.getSource.getPlayerOrException
+              confirmationPending.get(player.getUUID)
                 .toRight("No pending command!")
                 .map { _ =>
-                  confirmationPending -= player.getUniqueID
-                  context.getSource.sendFeedback("Pending command cancelled", false)
+                  confirmationPending -= player.getUUID
+                  context.getSource.sendSuccess("Pending command cancelled", false)
                 }
                 .leftFlatMap { left =>
-                  Some(ticking.filter(_._1 == player.getUniqueID))
+                  Some(ticking.filter(_._1 == player.getUUID))
                     .filter(_.nonEmpty)
                     .toRight(left)
                     .map(_.foreach(_._2.cancel(None)))

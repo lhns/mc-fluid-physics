@@ -10,5 +10,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(FlowingFluid.class)
 public interface FlowableFluidAccessor {
     @Invoker
-    void callBeforeReplacingBlock(IWorld world, BlockPos pos, BlockState state);
+    void callBeforeDestroyingBlock(IWorld world, BlockPos pos, BlockState state);
 }

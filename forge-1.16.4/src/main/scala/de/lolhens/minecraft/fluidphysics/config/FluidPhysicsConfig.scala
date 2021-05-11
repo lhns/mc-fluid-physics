@@ -53,17 +53,17 @@ case class FluidPhysicsConfig(
 
   def getDebugFluidState: Boolean = debugFluidState.value
 
-  def enabledFor(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.isEquivalentTo(fluid))
+  def enabledFor(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.isSame(fluid))
 }
 
 object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
   override val default: FluidPhysicsConfig = FluidPhysicsConfig()
 
   private lazy val defaultBiomes: Seq[(ResourceLocation, Biome)] =
-    ForgeRegistries.BIOMES.getEntries.iterator.asScala.map(e => (e.getKey.getLocation, e.getValue))
+    ForgeRegistries.BIOMES.getEntries.iterator.asScala.map(e => (e.getKey.getRegistryName, e.getValue))
       .filter {
         case (_, biome) =>
-          val category = biome.getCategory
+          val category = biome.getBiomeCategory
           category == Biome.Category.OCEAN || category == Biome.Category.RIVER
       }
       .toSeq
@@ -105,7 +105,7 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
                              ) {
     lazy val getFluidWhitelist: Seq[Fluid] = fluidWhitelist.value.map(registryGet(ForgeRegistries.FLUIDS, _))
 
-    def canRefillFluid(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.isEquivalentTo(fluid))
+    def canRefillFluid(fluid: Fluid): Boolean = getFluidWhitelist.exists(_.isSame(fluid))
 
     def canRainAt(world: World, pos: BlockPos): Boolean =
       !biomeDependent.value || {

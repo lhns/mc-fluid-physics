@@ -72,11 +72,11 @@ object FluidSourceFinder {
     if (!ignoreFirst && ignoreBlocks.contains(blockPos)) return None
     ignoreBlocks.add(blockPos)
 
-    if (!fluidState.isEmpty && fluid.isEquivalentTo(fluidState.getFluid)) {
+    if (!fluidState.isEmpty && fluid.isSame(fluidState.getType)) {
       if (direction != Direction.DOWN) {
-        val up: BlockPos = blockPos.up()
+        val up: BlockPos = blockPos.above
         val upFluidState = world.getFluidState(up)
-        if (!upFluidState.isEmpty && fluid.isEquivalentTo(upFluidState.getFluid)) {
+        if (!upFluidState.isEmpty && fluid.isSame(upFluidState.getType)) {
           val sourcePos = findSourceInternal(world, up, upFluidState, fluid, Direction.UP, ignoreBlocks, ignoreFirst = false, ignoreLevel = false, maxIterations, iteration + 1)
           if (sourcePos.isDefined) return sourcePos
         }
@@ -88,7 +88,7 @@ object FluidSourceFinder {
         val nextToSpring = FluidPhysicsMod.config.spring.map(_.getBlock) match {
           case Some(springBlock) =>
             (Direction.DOWN +: horizontal).filterNot(_ == oppositeDirection).exists { direction =>
-              world.getBlockState(blockPos.offset(direction)).isIn(springBlock)
+              world.getBlockState(blockPos.relative(direction)).is(springBlock)
             }
 
           case None =>
@@ -100,18 +100,18 @@ object FluidSourceFinder {
         }
       }
 
-      val falling = fluidState.get(FlowingFluid.FALLING)
+      val falling = fluidState.getValue(FlowingFluid.FALLING)
 
       var i = 0
       while (i < horizontal.length) {
         val nextDirection = horizontal(i)
         if (nextDirection != oppositeDirection) {
-          val level = fluidState.getLevel
-          val nextBlockPos = blockPos.offset(nextDirection)
+          val level = fluidState.getAmount
+          val nextBlockPos = blockPos.relative(nextDirection)
           val nextFluidState = world.getFluidState(nextBlockPos)
           if (!nextFluidState.isEmpty) {
-            val nextLevel = nextFluidState.getLevel
-            val nextFalling = nextFluidState.get(FlowingFluid.FALLING)
+            val nextLevel = nextFluidState.getAmount
+            val nextFalling = nextFluidState.getValue(FlowingFluid.FALLING)
             if (nextLevel > level || (falling && !nextFalling) || ignoreLevel) {
               val sourcePos = findSourceInternal(world, nextBlockPos, nextFluidState, fluid, nextDirection, ignoreBlocks, ignoreFirst = false, ignoreLevel, maxIterations, iteration + 1)
               if (sourcePos.isDefined) return sourcePos

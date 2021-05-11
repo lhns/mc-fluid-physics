@@ -25,49 +25,49 @@ import scala.Option;
 @Mixin(FlowingFluid.class)
 public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     @Shadow
-    protected abstract boolean isSameAs(FluidState state);
+    protected abstract boolean isSourceBlockOfThisType(FluidState state);
 
     private boolean canFlowDownIntoTrapdoor(BlockState state) {
         Fluid fluid = (FlowingFluid) (Object) this;
-        if (fluid.isEquivalentTo(Fluids.WATER) && state.getBlock() instanceof TrapDoorBlock) {
-            return !state.get(TrapDoorBlock.WATERLOGGED) &&
-                    (state.get(TrapDoorBlock.HALF) == Half.BOTTOM || state.get(TrapDoorBlock.OPEN));
+        if (fluid.isSame(Fluids.WATER) && state.getBlock() instanceof TrapDoorBlock) {
+            return !state.getValue(TrapDoorBlock.WATERLOGGED) &&
+                    (state.getValue(TrapDoorBlock.HALF) == Half.BOTTOM || state.getValue(TrapDoorBlock.OPEN));
         }
         return false;
     }
 
-    @Inject(at = @At("RETURN"), method = "func_211759_a", cancellable = true)
-    private void func_211759_a(IBlockReader world,
-                               Fluid fluid,
-                               BlockPos pos,
-                               BlockState state,
-                               BlockPos fromPos,
-                               BlockState fromState,
-                               CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("RETURN"), method = "isWaterHole", cancellable = true)
+    private void isWaterHole(IBlockReader world,
+                             Fluid fluid,
+                             BlockPos pos,
+                             BlockState state,
+                             BlockPos fromPos,
+                             BlockState fromState,
+                             CallbackInfoReturnable<Boolean> info) {
         if (canFlowDownIntoTrapdoor(fromState)) {
             info.setReturnValue(true);
         } else if (info.getReturnValue() &&
                 FluidPhysicsMod.config().enabledFor(fluid) &&
                 FluidPhysicsMod.config().getFlowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
-            if (isSameAs(fluidState)) {
+            if (isSourceBlockOfThisType(fluidState)) {
                 info.setReturnValue(false);
             }
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "canFlow", cancellable = true)
-    protected void canFlow(IBlockReader world,
-                           BlockPos fluidPos,
-                           BlockState fluidBlockState,
-                           Direction flowDirection,
-                           BlockPos flowTo,
-                           BlockState flowToBlockState,
-                           FluidState fluidState,
-                           Fluid fluid,
-                           CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("HEAD"), method = "canSpreadTo", cancellable = true)
+    protected void canSpreadTo(IBlockReader world,
+                               BlockPos fluidPos,
+                               BlockState fluidBlockState,
+                               Direction flowDirection,
+                               BlockPos flowTo,
+                               BlockState flowToBlockState,
+                               FluidState fluidState,
+                               Fluid fluid,
+                               CallbackInfoReturnable<Boolean> info) {
         if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
-            if (((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) && !fluidState.isSource()) {
+            if (((FlowingFluid) (Object) this).isSame(fluidState.getType()) && !fluidState.isSource()) {
                 info.setReturnValue(true);
             } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
                 info.setReturnValue(true);
@@ -75,64 +75,64 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "calculateCorrectFlowingState")
-    protected void calculateCorrectFlowingState(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> info) {
+    @Inject(at = @At("HEAD"), method = "getNewLiquid")
+    protected void getNewLiquid(IWorldReader world, BlockPos pos, BlockState state, CallbackInfoReturnable<FluidState> info) {
         FluidIsInfinite.set(world, pos);
     }
 
     @Shadow
-    public abstract FluidState getStillFluidState(boolean falling);
+    public abstract FluidState getSource(boolean falling);
 
     @Shadow
-    public abstract FluidState getFlowingFluidState(int level, boolean falling);
+    public abstract FluidState getFlowing(int level, boolean falling);
 
-    @Inject(at = @At("HEAD"), method = "flowInto", cancellable = true)
-    protected void flowInto(IWorld world,
+    @Inject(at = @At("HEAD"), method = "spreadTo", cancellable = true)
+    protected void spreadTo(IWorld world,
                             BlockPos pos,
                             BlockState state,
                             Direction direction,
                             FluidState fluidState,
                             CallbackInfo info) {
-        FluidState still = getStillFluidState(false);
+        FluidState still = getSource(false);
 
-        if (!FluidPhysicsMod.config().enabledFor(still.getFluid())) return;
+        if (!FluidPhysicsMod.config().enabledFor(still.getType())) return;
 
-        BlockPos up = pos.up();
+        BlockPos up = pos.above();
 
-        if (direction == Direction.DOWN || world.getFluidState(up).getFluid().isEquivalentTo(still.getFluid())) {
-            BlockState blockStateBelow = world.getBlockState(pos.down());
+        if (direction == Direction.DOWN || world.getFluidState(up).getType().isSame(still.getType())) {
+            BlockState blockStateBelow = world.getBlockState(pos.below());
 
-            boolean isFlowingOntoPiston = blockStateBelow.getBlock() instanceof PistonBlock && blockStateBelow.get(DirectionalBlock.FACING) == Direction.UP;
+            boolean isFlowingOntoPiston = blockStateBelow.getBlock() instanceof PistonBlock && blockStateBelow.getValue(DirectionalBlock.FACING) == Direction.UP;
             if (isFlowingOntoPiston) return;
 
-            Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
+            Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getType());
 
             if (sourcePos.isDefined()) {
-                int newSourceLevel = still.getLevel() - 1;
-                FluidState newSourceFluidState = getFlowingFluidState(newSourceLevel, false);
+                int newSourceLevel = still.getAmount() - 1;
+                FluidState newSourceFluidState = getFlowing(newSourceLevel, false);
 
                 BlockState sourceState = world.getBlockState(sourcePos.get());
 
                 // Drain source block
                 if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
-                    ((IBucketPickupHandler) sourceState.getBlock()).pickupFluid(world, sourcePos.get(), sourceState);
+                    ((IBucketPickupHandler) sourceState.getBlock()).takeLiquid(world, sourcePos.get(), sourceState);
                 } else {
                     if (!sourceState.getBlock().isAir(sourceState, world, sourcePos.get())) {
-                        this.callBeforeReplacingBlock(world, sourcePos.get(), sourceState);
+                        this.callBeforeDestroyingBlock(world, sourcePos.get(), sourceState);
                     }
 
-                    world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
+                    world.setBlock(sourcePos.get(), newSourceFluidState.createLegacyBlock(), 3);
                 }
 
                 // Flow source block to new position
                 if (state.getBlock() instanceof ILiquidContainer) {
-                    ((ILiquidContainer) state.getBlock()).receiveFluid(world, pos, state, still);
+                    ((ILiquidContainer) state.getBlock()).placeLiquid(world, pos, state, still);
                 } else {
                     if (!state.getBlock().isAir(state, world, pos)) {
-                        this.callBeforeReplacingBlock(world, pos, state);
+                        this.callBeforeDestroyingBlock(world, pos, state);
                     }
 
-                    world.setBlockState(pos, still.getBlockState(), 3);
+                    world.setBlock(pos, still.createLegacyBlock(), 3);
                 }
 
                 // Cancel default flow algorithm

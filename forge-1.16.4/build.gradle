@@ -1,12 +1,12 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://dist.creeper.host/Sponge/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
         classpath 'de.lolhens:java-mixin-stubber:0.0.2'
     }
@@ -33,7 +33,7 @@ minecraft {
     // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: '20201028-1.16.3'
+    mappings channel: 'official', version: '1.16.5'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -103,14 +103,17 @@ configurations {
 }
 
 repositories {
-    maven { url = 'https://minecraft.curseforge.com/api/maven/' }
+    maven {
+        url = 'https://minecraft.curseforge.com/api/maven/'
+        metadataSources { artifact() }
+    }
 }
 
 dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:1.16.4-35.0.3'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.1.16'
 
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
 
@@ -158,7 +161,7 @@ jar {
                 "Specification-Vendor"    : mod_author,
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : version,
+                "Implementation-Version"  : "${version}",
                 "Implementation-Vendor"   : mod_author,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 "MixinConfigs"            : "${mod_id}.mixins.json"

@@ -32,13 +32,13 @@ object RainRefill {
   private lazy val maxLevel = 33 + ChunkStatus.getDistance(ChunkStatus.FULL)
 
   private def loadedChunks(serverWorld: ServerWorld): Seq[ChunkPos] = {
-    val chunkManager: ServerChunkProvider = serverWorld.getChunkProvider
+    val chunkManager: ServerChunkProvider = serverWorld.getChunkSource
     chunkManager
-      .chunkManager.asInstanceOf[ThreadedAnvilChunkStorageAccessor]
-      .callGetLoadedChunksIterable()
+      .chunkMap.asInstanceOf[ThreadedAnvilChunkStorageAccessor]
+      .callGetChunks()
       .asScala
-      .filterNot(_.func_219281_j() > maxLevel)
-      .map(_.getPosition)
+      .filterNot(_.getTicketLevel > maxLevel)
+      .map(_.getPos)
       .toSeq
   }
 
@@ -55,8 +55,8 @@ object RainRefill {
   }
 
   private def getHighestBlock(chunk: Chunk, chunkX: Int, chunkZ: Int): BlockPos = {
-    val y = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).getHeight(chunkX, chunkZ)
-    new BlockPos(chunk.getPos.getXStart + chunkX, y, chunk.getPos.getZStart + chunkZ)
+    val y = chunk.getOrCreateHeightmapUnprimed(Heightmap.Type.WORLD_SURFACE).getFirstAvailable(chunkX, chunkZ)
+    new BlockPos(chunk.getPos.getMinBlockX + chunkX, y, chunk.getPos.getMinBlockZ + chunkZ)
   }
 
   private def shouldRefill(world: World,
@@ -69,15 +69,15 @@ object RainRefill {
       def onlySources[A](iterable: IterableOnce[A])(pos: A => BlockPos): List[A] =
         iterable.iterator.filter { e =>
           val fluidState = world.getFluidState(pos(e))
-          fluid.isEquivalentTo(fluidState.getFluid) && fluidState.isSource
+          fluid.isSame(fluidState.getType) && fluidState.isSource
         }.toList
 
-      val sourceDirections = onlySources(horizontal.iterator)(blockPos.offset)
+      val sourceDirections = onlySources(horizontal.iterator)(blockPos.relative)
 
       val edgeSources = onlySources(
         sourceDirections.iterator.flatMap { dir =>
-          val pos = blockPos.offset(dir)
-          List(pos.offset(dir.rotateY()), pos.offset(dir.rotateYCCW()))
+          val pos = blockPos.relative(dir)
+          List(pos.relative(dir.getClockWise), pos.relative(dir.getCounterClockWise))
         }.distinct
       )(identity)
 
@@ -103,14 +103,14 @@ object RainRefill {
     lazy val chunk: Chunk = world.getChunk(chunkPos.x, chunkPos.z)
 
     runWithProbability(rainRefillOptions.probability.value) {
-      val blockPos: BlockPos = getHighestBlock(chunk, Random.nextInt(16), Random.nextInt(16)).down()
+      val blockPos: BlockPos = getHighestBlock(chunk, Random.nextInt(16), Random.nextInt(16)).below
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState
-      fluidState.getFluid match {
-        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.getBlockState.isIn(blockState.getBlock) =>
+      fluidState.getType match {
+        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.createLegacyBlock.getBlockState.is(blockState.getBlock) =>
           if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid, rainRefillOptions)) {
-            val still = fluid.getStillFluidState(false)
-            world.setBlockState(blockPos, still.getBlockState)
+            val still = fluid.getSource(false)
+            world.setBlockAndUpdate(blockPos, still.createLegacyBlock)
           }
 
         case _ =>

@@ -18,17 +18,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TrapDoorBlock.class)
 public class TrapdoorBlockMixin {
-    @Inject(at = @At("RETURN"), method = "onBlockActivated", cancellable = true)
-    public void onBlockActivated(BlockState state,
-                                 World world,
-                                 BlockPos pos,
-                                 PlayerEntity player,
-                                 Hand hand,
-                                 BlockRayTraceResult hit,
-                                 CallbackInfoReturnable<ActionResultType> info) {
-        if (info.getReturnValue().isSuccessOrConsume() && !world.isRemote) {
-            BlockPos up = pos.up();
-            if (world.getFluidState(up).getFluid().isEquivalentTo(Fluids.WATER)) {
+    @Inject(at = @At("RETURN"), method = "use", cancellable = true)
+    public void use(BlockState state,
+                    World world,
+                    BlockPos pos,
+                    PlayerEntity player,
+                    Hand hand,
+                    BlockRayTraceResult hit,
+                    CallbackInfoReturnable<ActionResultType> info) {
+        if (info.getReturnValue().consumesAction() && !world.isClientSide) {
+            BlockPos up = pos.above();
+            if (world.getFluidState(up).getType().isSame(Fluids.WATER)) {
                 world.neighborChanged(up, world.getBlockState(pos).getBlock(), pos);
             }
         }
@@ -42,8 +42,8 @@ public class TrapdoorBlockMixin {
                                 BlockPos fromPos,
                                 boolean notify,
                                 CallbackInfo info) {
-        if (!world.isRemote) {
-            world.neighborChanged(pos.up(), world.getBlockState(pos).getBlock(), pos);
+        if (!world.isClientSide) {
+            world.neighborChanged(pos.above(), world.getBlockState(pos).getBlock(), pos);
         }
     }
 }

@@ -5,6 +5,6 @@ import net.minecraft.block.{AbstractBlock, Block}
 
 class SpringBlock(properties: AbstractBlock.Properties) extends Block(properties) {
   FluidPhysicsMod.config.spring.filter(_.shouldUpdateBlocksInWorld).foreach { spring =>
-    setDefaultState(spring.getBlock.getDefaultState)
+    registerDefaultState(spring.getBlock.defaultBlockState)
   }
 }

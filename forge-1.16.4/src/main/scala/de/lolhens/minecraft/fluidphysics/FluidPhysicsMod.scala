@@ -23,7 +23,7 @@ object FluidPhysicsMod {
   lazy val config: FluidPhysicsConfig = FluidPhysicsConfig.loadOrCreate(container.getModId)
 
   val SPRING_BLOCK_ID = new ResourceLocation(container.getModId, "spring")
-  val SPRING_BLOCK: Block = new SpringBlock(AbstractBlock.Properties.create(Material.ROCK).setRequiresTool().hardnessAndResistance(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID)
+  val SPRING_BLOCK: Block = new SpringBlock(AbstractBlock.Properties.of(Material.STONE).requiresCorrectToolForDrops().strength(2.0F, 6.0F)).setRegistryName(SPRING_BLOCK_ID)
 
   FMLJavaModLoadingContext.get.getModEventBus.addListener { _: FMLCommonSetupEvent =>
     config
@@ -34,7 +34,7 @@ object FluidPhysicsMod {
   })
 
   FMLJavaModLoadingContext.get.getModEventBus.addGenericListener(classOf[Item], { itemRegistryEvent: RegistryEvent.Register[Item] =>
-    itemRegistryEvent.getRegistry.register(new BlockItem(SPRING_BLOCK, new Item.Properties().group(ItemGroup.BUILDING_BLOCKS)).setRegistryName(SPRING_BLOCK_ID))
+    itemRegistryEvent.getRegistry.register(new BlockItem(SPRING_BLOCK, new Item.Properties().tab(ItemGroup.TAB_BUILDING_BLOCKS)).setRegistryName(SPRING_BLOCK_ID))
   })
 
   RainRefill.init()

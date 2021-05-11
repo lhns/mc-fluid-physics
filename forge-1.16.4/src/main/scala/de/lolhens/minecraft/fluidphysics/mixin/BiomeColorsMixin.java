@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BiomeColors.class)
 public class BiomeColorsMixin {
-    @Inject(at = @At("HEAD"), method = "getWaterColor", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "getAverageWaterColor", cancellable = true)
     private static void getWaterColor(IBlockDisplayReader view, BlockPos pos, CallbackInfoReturnable<Integer> info) {
         if (FluidPhysicsMod.config().getDebugFluidState()) {
             int r = 0;
@@ -24,9 +24,9 @@ public class BiomeColorsMixin {
 
             try {
                 FluidState state = ((FlowingFluidBlock) Blocks.WATER).getFluidState(view.getBlockState(pos));
-                r = 255 / 8 * state.getLevel();
+                r = 255 / 8 * state.getAmount();
                 g = state.isSource() ? 255 : 0;
-                b = state.get(FlowingFluid.FALLING) ? 255 : 0;
+                b = state.getValue(FlowingFluid.FALLING) ? 255 : 0;
             } catch (Exception ignored) {
             }
 
