@@ -40,6 +40,7 @@ If you want something more realistic look in the "Similar mods" section down bel
 
 ## Known issues
 - Under some circumstances fluids can stop flowing (This is why in the video I have the glass block slowing down the water flowing into the sandstone tank)
+- There were issues reported when using this mod on 1.16.5 together with ForgeEndertech and Optifine or GraalVM. Please upgrade to Optifine G8 or use another JVM.
 
 ## Older versions
 These are the previous iterations of this mod:
