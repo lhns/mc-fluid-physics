@@ -119,10 +119,10 @@ dependencies {
 
     implementation "scalable-cats-force:ScalableCatsForce-2.13.2-build:2:dev"
     implementation "org.scala-lang:scala-library:2.13.3"
-    implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.1.0'
+    implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
 
     shadow "io.circe:circe-parser_2.13:0.13.0"
-    shadow "io.circe:circe-generic_2.13:0.13.0"
+    shadow "io.circe:circe-generic_2.13:0.14.1"
     shadow "io.circe:circe-generic-extras_2.13:0.13.0"
     shadow "io.circe:circe-config_2.13:0.7.0"
 }
