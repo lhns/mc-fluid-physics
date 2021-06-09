@@ -23,7 +23,7 @@ version = parent.version + "+fabric-" + project.minecraft_version
 group = parent.group
 
 configurations {
-    implementation.extendsFrom(compile)
+    compile.extendsFrom(implementation)
     implementation.extendsFrom(shadow)
 }
 

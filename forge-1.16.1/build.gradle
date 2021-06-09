@@ -98,7 +98,7 @@ minecraft {
 }
 
 configurations {
-    implementation.extendsFrom(compile)
+    compile.extendsFrom(implementation)
     implementation.extendsFrom(shadow)
 }
 
