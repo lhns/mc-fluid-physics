@@ -6,12 +6,13 @@ import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.{FlowableFluid, FluidState}
-import net.minecraft.server.world.{ServerChunkManager, ServerWorld}
+import net.minecraft.server.world.{ChunkHolder, ServerChunkManager, ServerWorld}
 import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.chunk.{ChunkStatus, WorldChunk}
 import net.minecraft.world.{Heightmap, World}
 
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import scala.util.Random
 
 object RainRefill {
@@ -29,7 +30,7 @@ object RainRefill {
       .threadedAnvilChunkStorage.asInstanceOf[ThreadedAnvilChunkStorageAccessor]
       .callEntryIterator()
       .asScala
-      .filterNot(_.getLevel > maxLevel)
+      .flatMap(_.getTickingFuture.getNow(ChunkHolder.UNLOADED_WORLD_CHUNK).left.toScala)
       .map(_.getPos)
       .toSeq
   }
