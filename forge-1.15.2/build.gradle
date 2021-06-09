@@ -98,8 +98,8 @@ minecraft {
 }
 
 configurations {
-    shadow
-    compile.extendsFrom(shadow)
+    implementation.extendsFrom(compile)
+    implementation.extendsFrom(shadow)
 }
 
 repositories {
