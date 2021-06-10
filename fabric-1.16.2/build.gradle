@@ -37,7 +37,7 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-language-scala:1.0.0"
 
-    shadow "io.circe:circe-parser_2.13:0.13.0"
+    shadow "io.circe:circe-parser_2.13:0.14.1"
     shadow "io.circe:circe-generic_2.13:0.14.1"
     shadow "io.circe:circe-generic-extras_2.13:0.14.1"
     shadow "io.circe:circe-config_2.13:0.8.0"
