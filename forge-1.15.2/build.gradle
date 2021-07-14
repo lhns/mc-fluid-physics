@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.0.25', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.0.28'
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
         classpath 'de.lolhens:java-mixin-stubber:0.0.2'
     }
