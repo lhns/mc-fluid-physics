@@ -9,12 +9,13 @@ import net.minecraft.util.math.{BlockPos, ChunkPos}
 import net.minecraft.world.World
 import net.minecraft.world.chunk.{Chunk, ChunkStatus}
 import net.minecraft.world.gen.Heightmap
-import net.minecraft.world.server.{ServerChunkProvider, ServerWorld}
+import net.minecraft.world.server.{ChunkHolder, ServerChunkProvider, ServerWorld}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.TickEvent.Phase
 
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import scala.util.Random
 
 object RainRefill {
@@ -37,8 +38,8 @@ object RainRefill {
       .chunkManager.asInstanceOf[ThreadedAnvilChunkStorageAccessor]
       .callGetLoadedChunksIterable()
       .asScala
-      .filterNot(_.func_219281_j() > maxLevel)
-      .map(_.getPosition)
+      .flatMap(_.getTickingFuture.getNow(ChunkHolder.UNLOADED_CHUNK).left.toScala)
+      .map(_.getPos)
       .toSeq
   }
 
