@@ -41,7 +41,7 @@ object CommandHandler {
     confirmationPending += (player.getUuid -> command)
 
   private def isOperator(source: ServerCommandSource): Boolean =
-    source.getMinecraftServer.getPlayerManager.isOperator(source.getPlayer.getGameProfile)
+    source.getServer.getPlayerManager.isOperator(source.getPlayer.getGameProfile)
 
   private def commandResult(either: Either[String, Unit])
                            (implicit context: CommandContext[ServerCommandSource]): Int = either match {

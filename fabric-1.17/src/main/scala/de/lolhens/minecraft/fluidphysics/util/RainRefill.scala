@@ -68,8 +68,8 @@ object RainRefill {
 
       val edgeSources = onlySources(
         sourceDirections.iterator.flatMap { dir =>
-          val pos = blockPos.offset(dir)
-          List(pos.offset(dir.rotateYClockwise()), pos.offset(dir.rotateYCounterclockwise()))
+          val pos: BlockPos = blockPos.offset(dir)
+          List[BlockPos](pos.offset(dir.rotateYClockwise()), pos.offset(dir.rotateYCounterclockwise()))
         }.distinct
       )(identity)
 
