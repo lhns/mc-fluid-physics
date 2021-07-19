@@ -34,7 +34,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "net.fabricmc:fabric-language-scala:1.0.0"
+    modImplementation "net.fabricmc:fabric-language-scala:1.1.0+scala.2.13.6"
 
     shadow "io.circe:circe-parser_2.13:0.14.1"
     shadow "io.circe:circe-generic_2.13:0.14.1"
