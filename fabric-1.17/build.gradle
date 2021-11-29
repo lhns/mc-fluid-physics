@@ -8,7 +8,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath group: 'net.fabricmc', name: 'fabric-loom', version: '0.10.61'
+        classpath group: 'net.fabricmc', name: 'fabric-loom', version: '0.10.62'
     }
 }
 apply plugin: 'fabric-loom'
