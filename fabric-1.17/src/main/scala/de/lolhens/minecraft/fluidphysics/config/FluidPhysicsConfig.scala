@@ -3,7 +3,7 @@ package de.lolhens.minecraft.fluidphysics.config
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import de.lolhens.minecraft.fluidphysics.config.Config.Commented
 import de.lolhens.minecraft.fluidphysics.config.Config.Implicits._
-import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.{FluidId, FluidRuleConfig, RainRefillConfig, SpringConfig, registryGet}
+import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.{FluidId, FluidRuleConfig, RainRefillConfig, SpringConfig, registryGetOption}
 import io.circe.`export`.Exported
 import io.circe.syntax._
 import io.circe.{Codec, Decoder, Encoder}
@@ -17,6 +17,7 @@ import net.minecraft.world.biome.Biome
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
 case class FluidPhysicsConfig(
                                updateConfig: Commented[Boolean] = true ->
@@ -82,7 +83,7 @@ case class FluidPhysicsConfig(
         biomeWhitelist.value,
         biomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGet[Biome](biomesRegistry, _)
+        registryGetOption[Biome](biomesRegistry, _)
       )
 
     lazy val getBiomeDependentFluidInfinityWhitelist: Map[Option[Fluid], Set[Biome]] =
@@ -90,7 +91,7 @@ case class FluidPhysicsConfig(
         Some(biomeDependentFluidInfinityWhitelist.value),
         Seq.empty,
         Seq.empty,
-        registryGet[Biome](biomesRegistry, _)
+        registryGetOption[Biome](biomesRegistry, _)
       )
 
     lazy val getUnfillableBiomeWhitelist: Map[Option[Fluid], Set[Biome]] =
@@ -98,7 +99,7 @@ case class FluidPhysicsConfig(
         unfillableBiomeWhitelist.value,
         unfillableBiomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGet[Biome](biomesRegistry, _)
+        registryGetOption[Biome](biomesRegistry, _)
       )
   }
 
