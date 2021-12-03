@@ -30,8 +30,6 @@ object RainRefill {
     }
   }
 
-  private lazy val maxLevel = 33 + ChunkStatus.getDistance(ChunkStatus.FULL)
-
   private def loadedChunks(serverWorld: ServerWorld): Seq[ChunkPos] = {
     val chunkManager: ServerChunkProvider = serverWorld.getChunkSource
     chunkManager

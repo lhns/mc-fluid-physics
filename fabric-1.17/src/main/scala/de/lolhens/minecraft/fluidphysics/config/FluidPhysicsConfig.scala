@@ -172,9 +172,12 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
 
   override protected def codec: Codec[FluidPhysicsConfig] = makeCodec
 
+  private def registryGetOption[A](registry: Registry[A], id: Identifier): Option[A] =
+    registry.getOrEmpty(id).toScala
+
   private def registryGet[A](registry: Registry[A], id: Identifier): A =
-    registry.getOrEmpty(id)
-      .orElseThrow(() => new IllegalArgumentException("Registry does not contain identifier: " + id))
+    registryGetOption(registry, id)
+      .getOrElse(throw new IllegalArgumentException("Registry does not contain identifier: " + id))
 
   case class FluidId(id: Identifier) {
     lazy val fluidGroup: FluidGroup = FluidGroup.byFluid(registryGet(Registry.FLUID, id))
@@ -230,14 +233,14 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
     def toMap[A, B](whitelist: Option[IterableOnce[FluidRuleConfig[A]]],
                     blacklist: Seq[FluidRuleConfig[A]],
                     default: => IterableOnce[A],
-                    f: A => B): Map[Option[Fluid], Set[B]] = {
+                    f: A => Option[B]): Map[Option[Fluid], Set[B]] = {
       val blacklistRules = blacklist.map(_.rule)
       whitelist.fold(
         default.iterator.map(FluidRuleConfig(None, _))
       )(_.iterator)
         .map(_.rule)
         .filterNot(blacklistRules.contains)
-        .map(_.map(f))
+        .flatMap(e => f(e.value).map(e.withValue))
         .toSeq
         .groupBy(_.fluidGroup)
         .flatMap {
@@ -251,7 +254,9 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
   }
 
   case class FluidRule[A](fluidGroup: Option[FluidGroup], value: A) {
-    def map[B](f: A => B): FluidRule[B] = FluidRule[B](fluidGroup, f(value))
+    def withValue[B](value: B): FluidRule[B] = copy(value = value)
+
+    def map[B](f: A => B): FluidRule[B] = withValue(f(value))
   }
 
   case class SpringConfig(
