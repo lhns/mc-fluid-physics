@@ -88,32 +88,7 @@ public abstract class PistonBlockMixin {
 
                     if (sourcePos.isDefined()) {
                         FluidState still = fluid.getStill(false);
-                        int newSourceLevel = still.getLevel() - 1;
-                        FluidState newSourceFluidState = fluid.getFlowing(newSourceLevel, false);
-
-                        BlockState sourceState = world.getBlockState(sourcePos.get());
-
-                        // Drain source block
-                        if (sourceState.getBlock() instanceof FluidDrainable && !(sourceState.getBlock() instanceof FluidBlock)) {
-                            ((FluidDrainable) sourceState.getBlock()).tryDrainFluid(world, sourcePos.get(), sourceState);
-                        } else {
-                            if (!sourceState.isAir()) {
-                                ((FlowableFluidAccessor) fluid).callBeforeBreakingBlock(world, sourcePos.get(), sourceState);
-                            }
-
-                            world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
-                        }
-
-                        // Flow source block to new position
-                        if (fluidState.getBlockState().getBlock() instanceof FluidFillable) {
-                            ((FluidFillable) blockState.getBlock()).tryFillWithFluid(world, currentBlockPos, blockState, still);
-                        } else {
-                            if (!blockState.isAir()) {
-                                ((FlowableFluidAccessor) fluid).callBeforeBreakingBlock(world, currentBlockPos, blockState);
-                            }
-
-                            world.setBlockState(currentBlockPos, still.getBlockState(), 3);
-                        }
+                        FluidSourceFinder.moveSource(world, sourcePos.get(), currentBlockPos, blockState, fluid, still);
                     }
                 }
             }

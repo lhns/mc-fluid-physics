@@ -124,32 +124,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
             Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
 
             if (sourcePos.isDefined()) {
-                int newSourceLevel = still.getLevel() - 1;
-                FluidState newSourceFluidState = getFlowing(newSourceLevel, false);
-
-                BlockState sourceState = world.getBlockState(sourcePos.get());
-
-                // Drain source block
-                if (sourceState.getBlock() instanceof FluidDrainable && !(sourceState.getBlock() instanceof FluidBlock)) {
-                    ((FluidDrainable) sourceState.getBlock()).tryDrainFluid(world, sourcePos.get(), sourceState);
-                } else {
-                    if (!sourceState.isAir()) {
-                        this.callBeforeBreakingBlock(world, sourcePos.get(), sourceState);
-                    }
-
-                    world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
-                }
-
-                // Flow source block to new position
-                if (state.getBlock() instanceof FluidFillable) {
-                    ((FluidFillable) state.getBlock()).tryFillWithFluid(world, pos, state, still);
-                } else {
-                    if (!state.isAir()) {
-                        this.callBeforeBreakingBlock(world, pos, state);
-                    }
-
-                    world.setBlockState(pos, still.getBlockState(), 3);
-                }
+                FluidSourceFinder.moveSource(world, sourcePos.get(), pos, state, (FlowableFluid) (Object) this, still);
 
                 // Cancel default flow algorithm after source was moved
                 info.cancel();

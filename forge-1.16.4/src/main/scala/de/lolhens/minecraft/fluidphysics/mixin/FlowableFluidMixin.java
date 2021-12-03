@@ -108,34 +108,12 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
             Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getType());
 
             if (sourcePos.isDefined()) {
-                int newSourceLevel = still.getAmount() - 1;
-                FluidState newSourceFluidState = getFlowing(newSourceLevel, false);
-
-                BlockState sourceState = world.getBlockState(sourcePos.get());
-
-                // Drain source block
-                if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
-                    ((IBucketPickupHandler) sourceState.getBlock()).takeLiquid(world, sourcePos.get(), sourceState);
-                } else {
-                    if (!sourceState.getBlock().isAir(sourceState, world, sourcePos.get())) {
-                        this.callBeforeDestroyingBlock(world, sourcePos.get(), sourceState);
-                    }
-
-                    world.setBlock(sourcePos.get(), newSourceFluidState.createLegacyBlock(), 3);
-                }
-
-                // Flow source block to new position
-                if (state.getBlock() instanceof ILiquidContainer) {
-                    ((ILiquidContainer) state.getBlock()).placeLiquid(world, pos, state, still);
-                } else {
-                    if (!state.getBlock().isAir(state, world, pos)) {
-                        this.callBeforeDestroyingBlock(world, pos, state);
-                    }
-
-                    world.setBlock(pos, still.createLegacyBlock(), 3);
-                }
+                FluidSourceFinder.moveSource(world, sourcePos.get(), pos, state, (FlowingFluid) (Object) this, still);
 
                 // Cancel default flow algorithm
+                info.cancel();
+            } else if (isSourceBlockOfThisType(state.getFluidState())) {
+                // Cancel default flow algorithm if no source was found and new pos already contains the fluid source
                 info.cancel();
             }
         }

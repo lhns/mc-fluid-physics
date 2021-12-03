@@ -83,9 +83,6 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     @Shadow
     public abstract FluidState getStillFluidState(boolean falling);
 
-    @Shadow
-    public abstract FluidState getFlowingFluidState(int level, boolean falling);
-
     @Inject(at = @At("HEAD"), method = "flowInto", cancellable = true)
     protected void flowInto(IWorld world,
                             BlockPos pos,
@@ -108,34 +105,12 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
             Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
 
             if (sourcePos.isDefined()) {
-                int newSourceLevel = still.getLevel() - 1;
-                FluidState newSourceFluidState = getFlowingFluidState(newSourceLevel, false);
-
-                BlockState sourceState = world.getBlockState(sourcePos.get());
-
-                // Drain source block
-                if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
-                    ((IBucketPickupHandler) sourceState.getBlock()).pickupFluid(world, sourcePos.get(), sourceState);
-                } else {
-                    if (!sourceState.isAir(world, sourcePos.get())) {
-                        this.callBeforeReplacingBlock(world, sourcePos.get(), sourceState);
-                    }
-
-                    world.setBlockState(sourcePos.get(), newSourceFluidState.getBlockState(), 3);
-                }
-
-                // Flow source block to new position
-                if (state.getBlock() instanceof ILiquidContainer) {
-                    ((ILiquidContainer) state.getBlock()).receiveFluid(world, pos, state, still);
-                } else {
-                    if (!state.isAir(world, pos)) {
-                        this.callBeforeReplacingBlock(world, pos, state);
-                    }
-
-                    world.setBlockState(pos, still.getBlockState(), 3);
-                }
+                FluidSourceFinder.moveSource(world, sourcePos.get(), pos, state, (FlowingFluid) (Object) this, still);
 
                 // Cancel default flow algorithm
+                info.cancel();
+            } else if (isSameAs(state.getFluidState())) {
+                // Cancel default flow algorithm if no source was found and new pos already contains the fluid source
                 info.cancel();
             }
         }
