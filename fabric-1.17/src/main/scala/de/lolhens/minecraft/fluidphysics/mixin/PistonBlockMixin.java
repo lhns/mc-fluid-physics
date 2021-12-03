@@ -31,7 +31,7 @@ public abstract class PistonBlockMixin {
                                   CallbackInfoReturnable<Boolean> info) {
         FluidState fluidState = state.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                FluidPhysicsMod.config().isEnabledFor(fluidState.getFluid()) &&
                 fluidState.isStill()) {
             BlockPos nextBlockPos = pos.offset(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
@@ -72,7 +72,7 @@ public abstract class PistonBlockMixin {
                 FluidState fluidState = blockState.getFluidState();
 
                 if (!fluidState.isEmpty() &&
-                        FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                        FluidPhysicsMod.config().isEnabledFor(fluidState.getFluid()) &&
                         fluidState.getFluid() instanceof FlowableFluid && !fluidState.isStill()) {
                     FlowableFluid fluid = (FlowableFluid) fluidState.getFluid();
 

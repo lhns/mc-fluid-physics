@@ -1,7 +1,8 @@
 package de.lolhens.minecraft.fluidphysics.config
 
 import de.lolhens.minecraft.fluidphysics.config.Config.Commented.CommentedValueEncoder
-import de.lolhens.minecraft.fluidphysics.config.Config.{Commented, configPath, spaces2}
+import de.lolhens.minecraft.fluidphysics.config.Config.Implicits._
+import de.lolhens.minecraft.fluidphysics.config.Config.{Commented, configPath}
 import io.circe._
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import io.circe.syntax._
@@ -11,11 +12,14 @@ import net.minecraft.util.Identifier
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
+import scala.util.chaining._
 
-trait Config[Self] extends Config.Implicits {
+trait Config[Self] extends AutoDerivation {
   def default: Self
 
-  def updateConfig(config: Self): Boolean
+  def shouldUpdateConfig(config: Self): Boolean
+
+  def migrateConfig(config: Self): Self = config
 
   protected def codec: Codec[Self]
 
@@ -40,10 +44,11 @@ trait Config[Self] extends Config.Implicits {
             (obj.asObject.flatMap(_ ("_comment")),
               obj.asObject.flatMap(_ ("value"))) match {
               case (Some(comment), Some(value)) =>
-                Some(comment)
-                  .filterNot(_.isNull)
-                  .map(s"_comment_$key" -> _)
-                  .toList ++
+                List(comment)
+                  .flatMap(_.asString)
+                  .flatMap(_.split("\r?\n", -1))
+                  .zipWithIndex
+                  .map { case (value, i) => s"_comment_${key}_$i" -> Json.fromString(value) } ++
                   List(key -> value)
               case _ =>
                 List(key -> transformComments(obj))
@@ -52,10 +57,7 @@ trait Config[Self] extends Config.Implicits {
             List(e)
         }))
 
-    transformComments(configJson)
-      .printWith(spaces2)
-      .replaceAll("\"_comment_.*?\"\\s*?:\\s*?\"(.*)\",?", "// $1")
-      .replaceAll("\"(.*?)\"\\s*?:\\s*", "$1 = ")
+    transformComments(configJson).hoconString
   }
 
   private def saveToPath(path: Path, config: Self): Unit =
@@ -69,8 +71,8 @@ trait Config[Self] extends Config.Implicits {
       config
     } else {
       val configString = Files.readAllLines(path, StandardCharsets.UTF_8).asScala.mkString("\n")
-      val config = decodeString(configString)
-      if (updateConfig(config) && configString != encodeString(config))
+      val config = migrateConfig(decodeString(configString))
+      if (shouldUpdateConfig(config) && configString != encodeString(config))
         saveToPath(path, config)
       config
     }
@@ -82,9 +84,9 @@ object Config {
 
   def configPath(modId: String): Path = configDirectory.resolve(s"$modId.conf")
 
-  private val spaces2 = Printer.spaces2.copy(colonLeft = "")
-
-  case class Commented[A](value: A, private val comment: Option[String])
+  case class Commented[A](value: A, private val comment: Option[String]) {
+    def withValue(value: A): Commented[A] = copy(value = value, comment = comment)
+  }
 
   object Commented {
 
@@ -110,7 +112,6 @@ object Config {
         override def encode[A](value: Commented[A], encoder: Encoder[A]): Json =
           Json.fromFields(List(comment(value)))
       }
-
     }
 
     private val localValueEncoder: ThreadLocal[CommentedValueEncoder] = new ThreadLocal()
@@ -132,19 +133,20 @@ object Config {
     implicit def fromTuple[A](tuple: (A, String)): Commented[A] = Commented(tuple._1, Some(tuple._2).filter(_.nonEmpty))
   }
 
-  trait Implicits extends AutoDerivation {
-
-    import Implicits._
-
-    protected implicit def implicitCustomConfig: Configuration = customConfig
-
-    implicit def implicitIdentifierCodec: Codec[Identifier] = identifierCodec
-  }
-
   object Implicits {
-    private val customConfig: Configuration = Configuration.default.withDefaults
+    private val spaces2 = Printer.spaces2.copy(colonLeft = "")
+    private val commentRegex = "\"_comment_.*?\"\\s*?:\\s*?\"(.*)\",?".r
 
-    private val identifierCodec: Codec[Identifier] = Codec.from(
+    implicit class JsonHoconStringOps(val json: Json) extends AnyVal {
+      def hoconString: String = json
+        .printWith(spaces2)
+        .pipe(commentRegex.replaceAllIn(_, e => "// " + e.group(1).replaceAll("\\\\\"", "\"")))
+        .replaceAll("\"(.*?)\"\\s*?:\\s*", "$1 = ")
+    }
+
+    implicit val customConfig: Configuration = Configuration.default.withDefaults
+
+    implicit val identifierCodec: Codec[Identifier] = Codec.from(
       Decoder.decodeString.map(Identifier.tryParse),
       Encoder.encodeString.contramap[Identifier](_.toString)
     )
