@@ -5,7 +5,6 @@ import net.minecraft.fluid.Fluid
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{IWorldReader, World}
-import net.minecraftforge.registries.ForgeRegistries
 
 import scala.jdk.CollectionConverters._
 
@@ -35,17 +34,14 @@ object FluidIsInfinite {
         case _ => false
       }
 
-      val isBiome = world match {
+      def isInfiniteInBiome = world match {
         case world: World =>
-          FluidPhysicsMod.config.getFluidInfinityBiomes.exists { biomes =>
-            val biome = ForgeRegistries.BIOMES.getKey(world.getBiome(pos))
-            biomes.contains(biome)
-          }
+          FluidPhysicsMod.config.isInfiniteInBiome(fluid, world, pos)
 
         case _ => false
       }
 
-      nextToSpring || isBiome
+      isInfiniteInBiome || isNextToSpring
     } else {
       true
     }
