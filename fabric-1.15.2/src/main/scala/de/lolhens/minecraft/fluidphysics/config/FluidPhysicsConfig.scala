@@ -78,27 +78,27 @@ case class FluidPhysicsConfig(
 
   case class WorldContext(biomesRegistry: Registry[Biome]) {
     lazy val getBiomeWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         biomeWhitelist.value,
         biomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
 
     lazy val getBiomeDependentFluidInfinityWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         Some(biomeDependentFluidInfinityWhitelist.value),
         Seq.empty,
         Seq.empty,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
 
     lazy val getUnfillableBiomeWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         unfillableBiomeWhitelist.value,
         unfillableBiomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
   }
 
@@ -199,7 +199,7 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
     def byFluid(fluid: Fluid): FluidGroup = groups(fluid)
 
     lazy val groups: Map[Fluid, FluidGroup] = {
-      val fluids = Registry.FLUID.getIds.iterator.asScala.map(id => registryGet(Registry.BIOME, id)).toSeq
+      val fluids = Registry.FLUID.getIds.iterator.asScala.map(id => registryGet(Registry.FLUID, id)).toSeq
       fluids
         .groupBy(fluid => fluids.find(fluid.matchesType).get)
         .map(e => FluidGroup(e._2.toSet))

@@ -79,27 +79,27 @@ case class FluidPhysicsConfig(
 
   case class WorldContext(biomesRegistry: Registry[Biome]) {
     lazy val getBiomeWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         biomeWhitelist.value,
         biomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
 
     lazy val getBiomeDependentFluidInfinityWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         Some(biomeDependentFluidInfinityWhitelist.value),
         Seq.empty,
         Seq.empty,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
 
     lazy val getUnfillableBiomeWhitelist: Map[Option[Fluid], Set[Biome]] =
-      FluidRuleConfig.toMap(
+      FluidRuleConfig.toMap[Identifier, Biome](
         unfillableBiomeWhitelist.value,
         unfillableBiomeBlacklist.value,
         biomesRegistry.getIds.iterator.asScala,
-        registryGetOption[Biome](biomesRegistry, _)
+        registryGetOption(biomesRegistry, _)
       )
   }
 
