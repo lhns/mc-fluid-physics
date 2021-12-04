@@ -105,8 +105,8 @@ configurations {
 
 repositories {
     maven {
-        url = 'https://minecraft.curseforge.com/api/maven/'
-        metadataSources { artifact() }
+        name "Kotori316 Azure Maven"
+        url = uri("https://pkgs.dev.azure.com/Kotori316/minecraft/_packaging/mods/maven/v1")
     }
 }
 
@@ -118,7 +118,7 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 
-    implementation "scalable-cats-force:ScalableCatsForce-2.13.3-build:3:dev"
+    implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '2.13.6-build-4', classifier: 'dev'
     implementation "org.scala-lang:scala-library:2.13.7"
     implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
 
@@ -152,6 +152,8 @@ compileScala.doFirst {
 
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+    dumpTargetOnFailure true
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
