@@ -109,7 +109,7 @@ object FluidSourceFinder {
         val nextDirection = horizontal(i)
         if (nextDirection != oppositeDirection) {
           val level = fluidState.getAmount
-          val nextBlockPos = blockPos.relative(nextDirection)
+          val nextBlockPos: BlockPos = blockPos.relative(nextDirection)
           val nextFluidState = world.getFluidState(nextBlockPos)
           if (!nextFluidState.isEmpty) {
             val nextLevel = nextFluidState.getAmount

@@ -75,7 +75,7 @@ object RainRefill {
 
       val edgeSources = onlySources(
         sourceDirections.iterator.flatMap { dir =>
-          val pos = blockPos.relative(dir)
+          val pos: BlockPos = blockPos.relative(dir)
           List(pos.relative(dir.getClockWise), pos.relative(dir.getCounterClockWise))
         }.distinct
       )(identity)

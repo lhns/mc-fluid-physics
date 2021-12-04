@@ -78,7 +78,7 @@ case class RemoveLayersCommand(source: CommandSourceStack,
             .flatMap { pos =>
               if (isCurrentChunkElseQueue(pos)) {
                 drainFluid(world, pos, world.getBlockState(pos))
-                Direction.values().iterator.map(pos.relative)
+                Direction.values().iterator.map[BlockPos](pos.relative)
                   .filter(e => e.getY >= minY && e.getY <= maxY)
                   .filterNot(ignoredPositions.contains)
                   .tapEach(ignoredPositions.add)
