@@ -296,7 +296,7 @@ object FluidPhysicsConfig extends Config[FluidPhysicsConfig] {
     def canRainAt(world: Level, pos: BlockPos): Boolean =
       !biomeDependent.value || {
         val biome = world.getBiome(pos)
-        biome.getPrecipitation == Biome.Precipitation.RAIN && biome.getTemperature(pos) >= 0.15F
+        biome.getPrecipitation == Biome.Precipitation.RAIN && biome.warmEnoughToRain(pos)
       }
   }
 
