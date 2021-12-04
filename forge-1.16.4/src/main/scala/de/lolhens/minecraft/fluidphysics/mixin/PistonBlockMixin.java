@@ -2,7 +2,10 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.PistonBlock;
+import net.minecraft.block.PistonBlockStructureHelper;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.FluidState;
@@ -30,7 +33,7 @@ public abstract class PistonBlockMixin {
                                    CallbackInfoReturnable<Boolean> info) {
         FluidState fluidState = state.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                FluidPhysicsMod.config().isEnabledFor(fluidState.getType()) &&
                 fluidState.isSource()) {
             BlockPos nextBlockPos = pos.relative(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
@@ -71,7 +74,7 @@ public abstract class PistonBlockMixin {
                 FluidState fluidState = blockState.getFluidState();
 
                 if (!fluidState.isEmpty() &&
-                        FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                        FluidPhysicsMod.config().isEnabledFor(fluidState.getType()) &&
                         fluidState.getType() instanceof FlowingFluid && !fluidState.isSource()) {
                     FlowingFluid fluid = (FlowingFluid) fluidState.getType();
 

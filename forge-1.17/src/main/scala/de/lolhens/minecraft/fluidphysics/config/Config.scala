@@ -1,7 +1,6 @@
 package de.lolhens.minecraft.fluidphysics.config
 
 import de.lolhens.minecraft.fluidphysics.config.Config.Commented.CommentedValueEncoder
-import de.lolhens.minecraft.fluidphysics.config.Config.Implicits._
 import de.lolhens.minecraft.fluidphysics.config.Config.{Commented, configPath}
 import io.circe._
 import io.circe.generic.extras.{AutoDerivation, Configuration}
@@ -57,6 +56,7 @@ trait Config[Self] {
             List(e)
         }))
 
+    import Config.Implicits._
     transformComments(configJson).hoconString
   }
 
