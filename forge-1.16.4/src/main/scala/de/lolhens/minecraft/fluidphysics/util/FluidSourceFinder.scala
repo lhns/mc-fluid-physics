@@ -7,7 +7,6 @@ import net.minecraft.fluid.{FlowingFluid, Fluid, FluidState}
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorld
-import net.minecraft.world.level.LevelAccessor
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
