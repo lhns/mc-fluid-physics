@@ -6,6 +6,7 @@ import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.DirectionalBlock;
@@ -40,7 +41,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     }
 
     @Inject(at = @At("RETURN"), method = "isWaterHole", cancellable = true)
-    private void isWaterHole(BlockGetter world,
+    private void isWaterHole(BlockGetter blockView,
                              Fluid fluid,
                              BlockPos pos,
                              BlockState state,
@@ -50,7 +51,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         if (canFlowDownIntoTrapdoor(fromState)) {
             info.setReturnValue(true);
         } else if (info.getReturnValue() &&
-                FluidPhysicsMod.config().enabledFor(fluid) &&
+                FluidPhysicsMod.config().isEnabledFor(fluid, (Level) blockView, pos) &&
                 FluidPhysicsMod.config().getFlowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
             if (isSourceBlockOfThisType(fluidState)) {
@@ -60,18 +61,27 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     }
 
     @Inject(at = @At("HEAD"), method = "canSpreadTo", cancellable = true)
-    protected void canSpreadTo(BlockGetter world,
+    protected void canSpreadTo(BlockGetter blockView,
                                BlockPos fluidPos,
                                BlockState fluidBlockState,
                                Direction flowDirection,
                                BlockPos flowTo,
                                BlockState flowToBlockState,
                                FluidState fluidState,
-                               Fluid fluid,
+                               Fluid updatedFluid,
                                CallbackInfoReturnable<Boolean> info) {
-        if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
-            if (((FlowingFluid) (Object) this).isSame(fluidState.getType()) && !fluidState.isSource()) {
-                info.setReturnValue(true);
+        Fluid fluid = fluidState.getType();
+        if (flowDirection == Direction.DOWN &&
+                FluidPhysicsMod.config().isEnabledFor(fluid, (Level) blockView, fluidPos)) {
+            if (((FlowingFluid) (Object) this).isSame(fluid)) {
+                boolean isUnfillableAtSeaLevel = false;
+                if (blockView instanceof Level) {
+                    Level world = (Level) blockView;
+                    if (FluidPhysicsMod.config().isUnfillableInBiome(fluid, world, flowTo))
+                        isUnfillableAtSeaLevel = flowTo.getY() == world.getSeaLevel() - 1;
+                }
+                if (!fluidState.isSource() || isUnfillableAtSeaLevel)
+                    info.setReturnValue(true);
             } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
                 info.setReturnValue(true);
             }
@@ -98,7 +108,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                             CallbackInfo info) {
         FluidState still = getSource(false);
 
-        if (!FluidPhysicsMod.config().enabledFor(still.getType())) return;
+        if (!FluidPhysicsMod.config().isEnabledFor(still.getType(), (Level) world, pos)) return;
 
         BlockPos up = pos.above();
 

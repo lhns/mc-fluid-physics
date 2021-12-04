@@ -3,7 +3,10 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidIsInfinite;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.DirectionalBlock;
+import net.minecraft.block.PistonBlock;
+import net.minecraft.block.TrapDoorBlock;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
@@ -14,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -37,7 +41,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     }
 
     @Inject(at = @At("RETURN"), method = "func_211759_a", cancellable = true)
-    private void func_211759_a(IBlockReader world,
+    private void func_211759_a(IBlockReader blockView,
                                Fluid fluid,
                                BlockPos pos,
                                BlockState state,
@@ -47,7 +51,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
         if (canFlowDownIntoTrapdoor(fromState)) {
             info.setReturnValue(true);
         } else if (info.getReturnValue() &&
-                FluidPhysicsMod.config().enabledFor(fluid) &&
+                FluidPhysicsMod.config().isEnabledFor(fluid, (World) blockView, pos) &&
                 FluidPhysicsMod.config().getFlowOverSources()) {
             FluidState fluidState = fromState.getFluidState();
             if (isSameAs(fluidState)) {
@@ -57,18 +61,27 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
     }
 
     @Inject(at = @At("HEAD"), method = "canFlow", cancellable = true)
-    protected void canFlow(IBlockReader world,
+    protected void canFlow(IBlockReader blockView,
                            BlockPos fluidPos,
                            BlockState fluidBlockState,
                            Direction flowDirection,
                            BlockPos flowTo,
                            BlockState flowToBlockState,
                            FluidState fluidState,
-                           Fluid fluid,
+                           Fluid updatedFluid,
                            CallbackInfoReturnable<Boolean> info) {
-        if (flowDirection == Direction.DOWN && FluidPhysicsMod.config().enabledFor(fluid)) {
-            if (((FlowingFluid) (Object) this).isEquivalentTo(fluidState.getFluid()) && !fluidState.isSource()) {
-                info.setReturnValue(true);
+        Fluid fluid = fluidState.getFluid();
+        if (flowDirection == Direction.DOWN &&
+                FluidPhysicsMod.config().isEnabledFor(fluid, (World) blockView, fluidPos)) {
+            if (((FlowingFluid) (Object) this).isEquivalentTo(fluid)) {
+                boolean isUnfillableAtSeaLevel = false;
+                if (blockView instanceof World) {
+                    World world = (World) blockView;
+                    if (FluidPhysicsMod.config().isUnfillableInBiome(fluid, world, flowTo))
+                        isUnfillableAtSeaLevel = flowTo.getY() == world.getSeaLevel() - 1;
+                }
+                if (!fluidState.isSource() || isUnfillableAtSeaLevel)
+                    info.setReturnValue(true);
             } else if (canFlowDownIntoTrapdoor(flowToBlockState)) {
                 info.setReturnValue(true);
             }
@@ -95,7 +108,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
                             CallbackInfo info) {
         FluidState still = getStillFluidState(false);
 
-        if (!FluidPhysicsMod.config().enabledFor(still.getFluid())) return;
+        if (!FluidPhysicsMod.config().isEnabledFor(still.getFluid(), (World) world, pos)) return;
 
         BlockPos up = pos.up();
 

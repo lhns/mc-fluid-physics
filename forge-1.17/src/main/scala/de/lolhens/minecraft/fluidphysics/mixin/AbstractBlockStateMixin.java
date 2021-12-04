@@ -21,7 +21,7 @@ public abstract class AbstractBlockStateMixin {
         BlockState blockState = asState();
         FluidState fluidState = blockState.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                FluidPhysicsMod.config().isEnabledFor(fluidState.getType()) &&
                 fluidState.isSource()) {
             info.setReturnValue(PushReaction.PUSH_ONLY);
         }

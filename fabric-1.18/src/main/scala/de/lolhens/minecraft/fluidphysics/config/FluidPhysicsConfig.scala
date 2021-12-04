@@ -3,7 +3,7 @@ package de.lolhens.minecraft.fluidphysics.config
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import de.lolhens.minecraft.fluidphysics.config.Config.Commented
 import de.lolhens.minecraft.fluidphysics.config.Config.Implicits._
-import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.{FluidId, FluidRuleConfig, RainRefillConfig, SpringConfig, registryGet, registryGetOption}
+import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig.{FluidId, FluidRuleConfig, RainRefillConfig, SpringConfig, registryGetOption}
 import io.circe.`export`.Exported
 import io.circe.syntax._
 import io.circe.{Codec, Decoder, Encoder}

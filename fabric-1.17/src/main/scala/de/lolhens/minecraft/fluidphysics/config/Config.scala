@@ -14,7 +14,7 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
 import scala.util.chaining._
 
-trait Config[Self] extends AutoDerivation {
+trait Config[Self] {
   def default: Self
 
   def shouldUpdateConfig(config: Self): Boolean
@@ -133,7 +133,7 @@ object Config {
     implicit def fromTuple[A](tuple: (A, String)): Commented[A] = Commented(tuple._1, Some(tuple._2).filter(_.nonEmpty))
   }
 
-  object Implicits {
+  object Implicits extends AutoDerivation {
     private val spaces2 = Printer.spaces2.copy(colonLeft = "")
     private val commentRegex = "\"_comment_.*?\"\\s*?:\\s*?\"(.*)\",?".r
 
