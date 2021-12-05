@@ -2,8 +2,8 @@ package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.mixin.FlowableFluidAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
-import net.minecraft.block.{BlockState, FlowingFluidBlock, FluidBlock, IBucketPickupHandler, ILiquidContainer}
-import net.minecraft.fluid.{FlowingFluid, Fluid, FluidState, IFluidState}
+import net.minecraft.block.{BlockState, FlowingFluidBlock, IBucketPickupHandler, ILiquidContainer}
+import net.minecraft.fluid.{FlowingFluid, Fluid, IFluidState}
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorld
