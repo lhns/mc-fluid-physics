@@ -1,0 +1,202 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://dist.creeper.host/Sponge/maven' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7.32'
+        classpath 'de.lolhens:java-mixin-stubber:0.0.2'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+archivesBaseName = parent.project.archives_base_name
+version = parent.version + "+forge-1.18"
+group = parent.group
+mod_id = parent.project.mod_id
+mod_author = parent.project.mod_author
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+minecraft {
+    // The mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   Snapshot are built nightly.
+    // stable_#            Stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // Simply re-run your setup task after changing the mappings to update your workspace.
+    mappings channel: 'official', version: '1.18'
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            arg '-mixin.config=' + mod_id + '.mixins.json'
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                fluidphysics {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            arg '-mixin.config=' + mod_id + '.mixins.json'
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                fluidphysics {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/')
+
+            mods {
+                fluidphysics {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+configurations {
+    implementation.extendsFrom(compile)
+    implementation.extendsFrom(shadow)
+}
+
+repositories {
+    maven {
+        name "Kotori316 Azure Maven"
+        url = uri("https://pkgs.dev.azure.com/Kotori316/minecraft/_packaging/mods/maven/v1")
+    }
+}
+
+dependencies {
+    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
+    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
+    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
+    minecraft 'net.minecraftforge:forge:1.18-38.0.14'
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
+
+    implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '2.13.6-build-4', classifier: 'dev'
+    implementation "org.scala-lang:scala-library:2.13.7"
+    implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
+
+    shadow "io.circe:circe-parser_2.13:0.14.1"
+    shadow "io.circe:circe-generic_2.13:0.14.1"
+    shadow "io.circe:circe-generic-extras_2.13:0.14.1"
+    shadow "io.circe:circe-config_2.13:0.8.0"
+}
+
+def mixinstubsDir = file("$compileJava.temporaryDir/mixinstubs")
+
+sourceSets.main.java.srcDirs += mixinstubsDir
+
+def mixinstubs = task('mixinstubs') {
+    doLast {
+        delete(mixinstubsDir)
+        de.lolhens.jstubber.Stubber.MIXIN.stubDirectory(sourceSets.main.scala.srcDirs[0].toPath(), mixinstubsDir.toPath())
+    }
+}
+
+compileJava.dependsOn(mixinstubs)
+
+compileJava.doLast {
+    delete(compileJava.destinationDir)
+    delete(mixinstubsDir)
+}
+
+compileScala.doFirst {
+    compileScala.options.compilerArgs += compileJava.options.compilerArgs
+}
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+    dumpTargetOnFailure true
+}
+
+// Example for how to get properties into the manifest for reading by the runtime..
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : project.name,
+                "Specification-Vendor"    : mod_author,
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${version}",
+                "Implementation-Vendor"   : mod_author,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs"            : "${mod_id}.mixins.json"
+        ])
+    }
+    from {
+        configurations.shadow.collect { file ->
+            [
+                    "scala-library",
+                    "cats-core",
+                    "cats-macros",
+                    "cats-kernel",
+            ].any { file.toString().contains(it) } ? null : file.isDirectory() ? file : zipTree(file)
+        }
+    }
+}
+
+// Example configuration to allow publishing using the maven-publish task
+// This is the preferred method to reobfuscate your jar file
+jar.finalizedBy('reobfJar')
+// However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
+//publish.dependsOn('reobfJar')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+}

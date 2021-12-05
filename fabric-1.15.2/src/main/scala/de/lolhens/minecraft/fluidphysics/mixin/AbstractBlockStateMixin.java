@@ -16,7 +16,7 @@ public abstract class AbstractBlockStateMixin {
         BlockState blockState = (BlockState) (Object) this;
         FluidState fluidState = blockState.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getFluid()) &&
+                FluidPhysicsMod.config().isEnabledFor(fluidState.getFluid()) &&
                 fluidState.isStill()) {
             info.setReturnValue(PistonBehavior.PUSH_ONLY);
         }

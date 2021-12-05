@@ -4,7 +4,6 @@ import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod
 import net.minecraft.fluid.Fluid
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.registry.Registry
 import net.minecraft.world.{IWorldReader, World}
 
 import scala.jdk.CollectionConverters._
@@ -25,8 +24,8 @@ object FluidIsInfinite {
   private val horizontal: Array[Direction] = Direction.Plane.HORIZONTAL.iterator().asScala.toArray
 
   def isInfinite(fluid: Fluid): Boolean =
-    if (FluidPhysicsMod.config.enabledFor(fluid)) {
-      val nextToSpring = FluidPhysicsMod.config.spring match {
+    if (FluidPhysicsMod.config.isEnabledFor(fluid)) {
+      def isNextToSpring = FluidPhysicsMod.config.spring match {
         case Some(spring) if spring.allowInfiniteWater.value =>
           (Direction.DOWN +: horizontal).exists { direction =>
             world.getBlockState(pos.relative(direction)).is(spring.getBlock)
@@ -35,17 +34,14 @@ object FluidIsInfinite {
         case _ => false
       }
 
-      val isBiome = world match {
+      def isInfiniteInBiome = world match {
         case world: World =>
-          FluidPhysicsMod.config.getFluidInfinityBiomes.exists { biomes =>
-            val biome = world.registryAccess.registryOrThrow(Registry.BIOME_REGISTRY).getKey(world.getBiome(pos))
-            biomes.contains(biome)
-          }
+          FluidPhysicsMod.config.isInfiniteInBiome(fluid, world, pos)
 
         case _ => false
       }
 
-      nextToSpring || isBiome
+      isInfiniteInBiome || isNextToSpring
     } else {
       true
     }

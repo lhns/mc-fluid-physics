@@ -2,7 +2,10 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.PistonBlock;
+import net.minecraft.block.PistonBlockStructureHelper;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.fluid.FlowingFluid;
 import net.minecraft.fluid.FluidState;
@@ -30,7 +33,7 @@ public abstract class PistonBlockMixin {
                                    CallbackInfoReturnable<Boolean> info) {
         FluidState fluidState = state.getFluidState();
         if (!fluidState.isEmpty() &&
-                FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                FluidPhysicsMod.config().isEnabledFor(fluidState.getType()) &&
                 fluidState.isSource()) {
             BlockPos nextBlockPos = pos.relative(motionDir);
             BlockState nextBlockState = world.getBlockState(nextBlockPos);
@@ -71,7 +74,7 @@ public abstract class PistonBlockMixin {
                 FluidState fluidState = blockState.getFluidState();
 
                 if (!fluidState.isEmpty() &&
-                        FluidPhysicsMod.config().enabledFor(fluidState.getType()) &&
+                        FluidPhysicsMod.config().isEnabledFor(fluidState.getType()) &&
                         fluidState.getType() instanceof FlowingFluid && !fluidState.isSource()) {
                     FlowingFluid fluid = (FlowingFluid) fluidState.getType();
 
@@ -87,32 +90,7 @@ public abstract class PistonBlockMixin {
 
                     if (sourcePos.isDefined()) {
                         FluidState still = fluid.getSource(false);
-                        int newSourceLevel = still.getAmount() - 1;
-                        FluidState newSourceFluidState = fluid.getFlowing(newSourceLevel, false);
-
-                        BlockState sourceState = world.getBlockState(sourcePos.get());
-
-                        // Drain source block
-                        if (sourceState.getBlock() instanceof IBucketPickupHandler && !(sourceState.getBlock() instanceof FlowingFluidBlock)) {
-                            ((IBucketPickupHandler) sourceState.getBlock()).takeLiquid(world, sourcePos.get(), sourceState);
-                        } else {
-                            if (!sourceState.isAir(world, sourcePos.get())) {
-                                ((FlowableFluidAccessor) fluid).callBeforeDestroyingBlock(world, sourcePos.get(), sourceState);
-                            }
-
-                            world.setBlock(sourcePos.get(), newSourceFluidState.createLegacyBlock(), 3);
-                        }
-
-                        // Flow source block to new position
-                        if (fluidState.createLegacyBlock().getBlock() instanceof ILiquidContainer) {
-                            ((ILiquidContainer) blockState.getBlock()).placeLiquid(world, currentBlockPos, blockState, still);
-                        } else {
-                            if (!blockState.isAir(world, currentBlockPos)) {
-                                ((FlowableFluidAccessor) fluid).callBeforeDestroyingBlock(world, currentBlockPos, blockState);
-                            }
-
-                            world.setBlock(currentBlockPos, still.createLegacyBlock(), 3);
-                        }
+                        FluidSourceFinder.moveSource(world, sourcePos.get(), currentBlockPos, blockState, fluid, still);
                     }
                 }
             }

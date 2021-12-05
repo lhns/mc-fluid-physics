@@ -30,8 +30,6 @@ object RainRefill {
     }
   }
 
-  private lazy val maxLevel = 33 + ChunkStatus.getDistance(ChunkStatus.FULL)
-
   private def loadedChunks(serverWorld: ServerWorld): Seq[ChunkPos] = {
     val chunkManager: ServerChunkProvider = serverWorld.getChunkSource
     chunkManager
@@ -108,7 +106,7 @@ object RainRefill {
       val blockState = world.getBlockState(blockPos)
       val fluidState = blockState.getFluidState
       fluidState.getType match {
-        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.createLegacyBlock.getBlockState.is(blockState.getBlock) =>
+        case fluid: FlowingFluid if !fluidState.isEmpty && fluidState.createLegacyBlock.is(blockState.getBlock) =>
           if (rainRefillOptions.canRefillFluid(fluid) && shouldRefill(world, blockPos, blockState, fluidState, fluid, rainRefillOptions)) {
             val still = fluid.getSource(false)
             world.setBlockAndUpdate(blockPos, still.createLegacyBlock)

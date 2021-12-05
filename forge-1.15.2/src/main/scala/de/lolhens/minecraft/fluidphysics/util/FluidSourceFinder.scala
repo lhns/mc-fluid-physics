@@ -1,7 +1,9 @@
 package de.lolhens.minecraft.fluidphysics.util
 
+import de.lolhens.minecraft.fluidphysics.mixin.FlowableFluidAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
-import net.minecraft.fluid.{FlowingFluid, Fluid, IFluidState}
+import net.minecraft.block.{BlockState, IBucketPickupHandler, ILiquidContainer}
+import net.minecraft.fluid.{FlowingFluid, Fluid, FluidState, IFluidState}
 import net.minecraft.util.Direction
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IWorld
@@ -124,5 +126,39 @@ object FluidSourceFinder {
     }
 
     None
+  }
+
+  def moveSource(world: IWorld,
+                 srcPos: BlockPos,
+                 dstPos: BlockPos,
+                 dstState: BlockState,
+                 fluid: FlowingFluid,
+                 still: IFluidState): Unit = {
+    // Drain source block
+    val srcState = world.getBlockState(srcPos)
+    srcState.getBlock match {
+      case bucketPickup: IBucketPickupHandler =>
+        bucketPickup.pickupFluid(world, srcPos, srcState)
+
+      case _ =>
+        if (!srcState.getBlock.isAir(srcState, world, srcPos))
+          fluid.asInstanceOf[FlowableFluidAccessor].callBeforeReplacingBlock(world, srcPos, srcState)
+
+        val newSourceLevel = still.getLevel - 1
+        val newSourceFluidState = fluid.getFlowingFluidState(newSourceLevel, false)
+        world.setBlockState(srcPos, newSourceFluidState.getBlockState, 3)
+    }
+
+    // Flow source block to new position
+    dstState.getBlock match {
+      case liquidBlockContainer: ILiquidContainer =>
+        liquidBlockContainer.receiveFluid(world, dstPos, dstState, still)
+
+      case _ =>
+        if (!dstState.getBlock.isAir(dstState, world, dstPos))
+          fluid.asInstanceOf[FlowableFluidAccessor].callBeforeReplacingBlock(world, dstPos, dstState)
+
+        world.setBlockState(dstPos, still.getBlockState, 3)
+    }
   }
 }
