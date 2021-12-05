@@ -2,7 +2,7 @@ package de.lolhens.minecraft.fluidphysics.util
 
 import de.lolhens.minecraft.fluidphysics.mixin.FlowableFluidAccessor
 import de.lolhens.minecraft.fluidphysics.{FluidPhysicsMod, horizontal}
-import net.minecraft.block.{BlockState, FluidDrainable, FluidFillable}
+import net.minecraft.block.{BlockState, FluidBlock, FluidDrainable, FluidFillable}
 import net.minecraft.fluid.{FlowableFluid, Fluid, FluidState}
 import net.minecraft.util.math.{BlockPos, Direction}
 import net.minecraft.world.WorldAccess
@@ -15,17 +15,20 @@ object FluidSourceFinder {
 
   def setOf(blockPos: java.util.Collection[BlockPos]): mutable.Set[BlockPos] = blockPos.asScala.to(mutable.Set)
 
+  @inline
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid): Option[BlockPos] =
     findSource(world, blockPos, fluid, Direction.UP)
 
+  @inline
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid,
                  direction: Direction): Option[BlockPos] =
     findSource(world, blockPos, fluid, direction, mutable.Set.empty, ignoreFirst = false, ignoreLevel = false, defaultMaxIterations)
 
+  @inline
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid,
@@ -35,6 +38,7 @@ object FluidSourceFinder {
                  ignoreLevel: Boolean): Option[BlockPos] =
     findSource(world, blockPos, fluid, direction, ignoreBlocks, ignoreFirst, ignoreLevel, defaultMaxIterations)
 
+  @inline
   def findSource(world: WorldAccess,
                  blockPos: BlockPos,
                  fluid: Fluid,
@@ -136,7 +140,7 @@ object FluidSourceFinder {
     // Drain source block
     val srcState = world.getBlockState(srcPos)
     srcState.getBlock match {
-      case bucketPickup: FluidDrainable =>
+      case bucketPickup: FluidDrainable if !bucketPickup.isInstanceOf[FluidBlock] =>
         bucketPickup.tryDrainFluid(world, srcPos, srcState)
 
       case _ =>
