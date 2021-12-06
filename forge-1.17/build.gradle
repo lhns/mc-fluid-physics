@@ -120,7 +120,7 @@ dependencies {
 
     implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '2.13.6-build-4', classifier: 'dev'
     implementation "org.scala-lang:scala-library:2.13.7"
-    implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
+    implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.7.1-kotori'
 
     shadow "io.circe:circe-parser_2.13:0.14.1"
     shadow "io.circe:circe-generic_2.13:0.14.1"
