@@ -3,10 +3,16 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
     ignore:
       - dependency-name: "forge"
