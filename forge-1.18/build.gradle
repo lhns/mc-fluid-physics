@@ -119,7 +119,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 
     implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '2.13.7-build-2', classifier: 'dev'
-    implementation "org.scala-lang:scala-library:2.13.7"
+    implementation "org.scala-lang:scala-library:2.13.8"
     implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
 
     shadow "io.circe:circe-parser_2.13:0.14.1"
