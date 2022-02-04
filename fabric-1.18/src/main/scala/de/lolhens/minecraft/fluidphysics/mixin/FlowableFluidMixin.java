@@ -3,6 +3,7 @@ package de.lolhens.minecraft.fluidphysics.mixin;
 import de.lolhens.minecraft.fluidphysics.FluidPhysicsMod;
 import de.lolhens.minecraft.fluidphysics.util.FluidIsInfinite;
 import de.lolhens.minecraft.fluidphysics.util.FluidSourceFinder;
+import de.lolhens.minecraft.fluidphysics.util.TaskQueue;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.fluid.FlowableFluid;
@@ -121,7 +122,32 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
             boolean isFlowingOntoPiston = blockStateBelow.getBlock() instanceof PistonBlock && blockStateBelow.get(FacingBlock.FACING) == Direction.UP;
             if (isFlowingOntoPiston) return;
 
-            Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
+            TaskQueue.enqueue(() -> {
+                Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
+
+                if (sourcePos.isDefined()) {
+                    FluidSourceFinder.moveSource(world, sourcePos.get(), pos, state, (FlowableFluid) (Object) this, still);
+
+                    // Cancel default flow algorithm after source was moved
+                    //info.cancel();
+                } else if (!isMatchingAndStill(state.getFluidState())) {
+                    // INVERT: Cancel default flow algorithm if no source was found and new pos already contains the fluid source
+                    // Run default algorithm
+                    if (state.getBlock() instanceof FluidFillable) {
+                        ((FluidFillable) state.getBlock()).tryFillWithFluid(world, pos, state, fluidState);
+                    } else {
+                        if (!state.isAir()) {
+                            callBeforeBreakingBlock(world, pos, state);
+                        }
+
+                        world.setBlockState(pos, fluidState.getBlockState(), 3);
+                    }
+                }
+
+                return null;
+            });
+            info.cancel();
+            /*Option<BlockPos> sourcePos = FluidSourceFinder.findSource(world, up, still.getFluid());
 
             if (sourcePos.isDefined()) {
                 FluidSourceFinder.moveSource(world, sourcePos.get(), pos, state, (FlowableFluid) (Object) this, still);
@@ -131,7 +157,7 @@ public abstract class FlowableFluidMixin implements FlowableFluidAccessor {
             } else if (isMatchingAndStill(state.getFluidState())) {
                 // Cancel default flow algorithm if no source was found and new pos already contains the fluid source
                 info.cancel();
-            }
+            }*/
         }
     }
 }

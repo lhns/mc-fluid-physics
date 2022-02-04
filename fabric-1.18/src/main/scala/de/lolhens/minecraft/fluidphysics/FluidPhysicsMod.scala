@@ -3,11 +3,13 @@ package de.lolhens.minecraft.fluidphysics
 import de.lolhens.minecraft.fluidphysics.block.SpringBlock
 import de.lolhens.minecraft.fluidphysics.command.CommandHandler
 import de.lolhens.minecraft.fluidphysics.config.FluidPhysicsConfig
-import de.lolhens.minecraft.fluidphysics.util.RainRefill
+import de.lolhens.minecraft.fluidphysics.util.{RainRefill, TaskQueue}
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.block.{Block, Material}
 import net.minecraft.item.{BlockItem, Item, ItemGroup}
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
@@ -27,5 +29,9 @@ object FluidPhysicsMod extends ModInitializer {
 
     RainRefill.init()
     CommandHandler.init()
+
+    ServerTickEvents.END_WORLD_TICK.register { world: ServerWorld =>
+      TaskQueue.process()
+    }
   }
 }
