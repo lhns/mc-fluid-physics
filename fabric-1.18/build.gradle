@@ -38,7 +38,7 @@ dependencies {
 
     shadow "io.circe:circe-parser_2.13:0.14.2"
     shadow "io.circe:circe-generic_2.13:0.14.2"
-    shadow "io.circe:circe-generic-extras_2.13:0.14.1"
+    shadow "io.circe:circe-generic-extras_2.13:0.14.2"
     shadow "io.circe:circe-config_2.13:0.8.0"
 
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
