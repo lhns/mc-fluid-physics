@@ -118,7 +118,7 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 
-    implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '2.13.8-build-4', classifier: 'dev'
+    implementation group: 'com.kotori316', name: 'scalablecatsforce', version: '3.3.0-build-1', classifier: 'dev'
     implementation "org.scala-lang:scala-library:2.13.8"
     implementation group: 'org.typelevel', name: "cats-core_2.13", version: '2.6.1'
 
