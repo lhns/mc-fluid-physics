@@ -13,3 +13,5 @@ include ':forge-1.16.2'
 include ':forge-1.16.4'
 include ':forge-1.17'
 include ':forge-1.18'
+
+include ':fabric-1.20.1'
