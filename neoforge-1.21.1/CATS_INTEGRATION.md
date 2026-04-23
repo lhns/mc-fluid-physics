@@ -102,15 +102,19 @@ Not currently worth it; documented for completeness.
 
 ## Unrelated but nearby: dev-mode run tasks
 
-`./gradlew-1.21.1 :neoforge-1.21.1:runData` / `runGameTestServer` / `runClient` **do not work** with the current setup. Circe ends up in a different JPMS layer than our mod in MDG's dev-mode module structure, and our named mod module can't `read` circe's classes there. Symptom during boot: `ClassNotFoundException: io.circe.Encoder` (or similar).
+`./gradlew-1.21.1 :neoforge-1.21.1:runData` / `runGameTestServer` / `runClient` **do not work** with the current setup. Two intertwined MDG/JPMS problems:
 
-This is a separate problem from the cats integration — dev-mode runs fail even when the production jar loads cleanly. The production jar (dropped into a real NeoForge instance) is unaffected because NeoForge's production `SecureJarHandler` handles module layers differently from what MDG does in dev mode.
+1. `prepareGameTestServerRun` runs `BootstrapLauncher`, which scans every jar on the dev-run classpath for JPMS module descriptors. Raw `cats-core_3:2.13.0` sits there unrelocated, so `SimpleJarMetadata.computeDescriptor` chokes on the `cats.kernel.instances.byte` sub-package with `IllegalArgumentException: Invalid package name: 'byte' is not a Java identifier`. shadowJar's keyword-package relocation fixes this inside the shipping jar but not on the dev classpath.
+2. Even if (1) were fixed, circe ends up in a different JPMS layer than our mod in MDG's dev-mode module structure, so `ClassNotFoundException: io.circe.Encoder` typically surfaces next.
+
+Diverting the dev classpath to the shadowJar output doesn't cleanly resolve (1): the mod's `build/classes` bytecode still references unrelocated `cats.*`, so those references need a resolution target — SCF's cats has the wrong class names (`EitherI` vs `either`), vanilla cats has the keyword packages. Neither wins.
 
 Consequences:
+- CI does NOT run `runGameTestServer` / `runData` — see `.github/workflows/build.yml`. Integration-level smoke testing is done by dropping the production jar into a real NeoForge instance.
 - GameTests in `src/main/java/.../gametest/FluidFlowGameTests.java` compile cleanly but haven't been executed live. They'd need to run in a real game instance, not dev mode.
 - Datagen (`runData`) can't be used to regenerate resources locally.
 
-Fixing dev-mode runs would likely require either writing an explicit `module-info.java` for the mod or restructuring how circe gets onto the dev classpath. Not blocking for a real release.
+Fixing dev-mode runs would require either writing an explicit `module-info.java` for the mod AND redirecting MDG away from `build/classes` toward the shadowJar output (invasive), or dropping circe entirely (see "Drop circe entirely" above). Not blocking for a real release.
 
 ## Verification after future rebuilds
 
