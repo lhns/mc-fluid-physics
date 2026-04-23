@@ -1,0 +1,259 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
+    }
+    dependencies {
+        classpath 'de.lolhens:java-mixin-stubber:0.0.2'
+    }
+}
+
+plugins {
+    id 'net.neoforged.moddev' version '2.0.91'
+    id 'scala'
+    id 'maven-publish'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+archivesBaseName = parent.project.archives_base_name
+version = parent.version + "+neoforge-${project.minecraft_version}"
+group = parent.group
+
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
+
+// Pull in shared sources from common-1.21.1
+// Pull in shared sources from common-1.21.1. All mixins + Scala co-live under src/main/scala/
+// so scalac does joint compilation. The platform module's own java.srcDir is used for the
+// mixinstub output only (see below).
+sourceSets.main.scala.srcDirs += project(':common-1.21.1').file('src/main/scala')
+sourceSets.main.resources.srcDirs += project(':common-1.21.1').file('src/main/resources')
+
+repositories {
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases'
+    }
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    maven {
+        name = 'Kotori316 Maven'
+        url = 'https://maven.kotori316.com'
+    }
+    maven {
+        name = 'SpongePowered'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    mavenCentral()
+}
+
+neoForge {
+    version = project.neoforge_version
+    parchment {
+        mappingsVersion = project.parchment_version
+        minecraftVersion = project.parchment_minecraft
+    }
+    runs {
+        client {
+            client()
+            systemProperty 'forge.enabledGameTestNamespaces', 'fluidphysics'
+        }
+        server {
+            server()
+            systemProperty 'forge.enabledGameTestNamespaces', 'fluidphysics'
+        }
+        data {
+            data()
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'fluidphysics'
+        }
+    }
+    mods {
+        fluidphysics {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// `shadow` collects circe + its transitive deps; we merge them directly into the mod jar's root
+// at packaging time (classes live at `io/circe/**` inside our jar, inside our mod's JPMS module).
+// This is what the Fabric module does too. MDG's `jarJar` would be cleaner in principle, but it
+// only installs its content at jar-time, not into MDG's dev-mode runs from build/classes — and
+// reading a jar-in-jar module from a Scala mod without a module-info.java isn't straightforward.
+// Shadow gives identical visibility in dev and production.
+//
+// `implementation.extendsFrom(shadow)` ensures circe is on compileClasspath + runtimeClasspath
+// (MDG dev runs consume runtimeClasspath). Per-dep excludes on each `shadow(...)` call below
+// keep Scala + cats out of the transitive pull — SCF's `-with-library` jar already provides
+// them as a single JPMS module, and separate jars would create duplicates that break resolution.
+configurations {
+    shadow
+    implementation.extendsFrom(shadow)
+}
+
+dependencies {
+    // Scala language provider. Follows the Kotori316/SLP canonical NeoForge 1.21.1 example
+    // (https://github.com/Kotori316/SLP, tree 1.21.0, example/1.21.1-neoforge/build.gradle.kts):
+    //   - `runtimeOnly` on the `-with-library` classifier puts SCF on the run classpath. MDG
+    //     auto-discovers it as an FMLModType=LIBRARY mod.
+    //   - `transitive = false` keeps SCF's POM-declared scala2/scala3/cats from also appearing on
+    //     runtimeClasspath as separate jars. The classes are already inside the SCF jar itself.
+    //   - `scala3-library_3` is a plain `compileOnly`: SCF provides Scala 3 at runtime.
+    runtimeOnly("com.kotori316:scalablecatsforce-neoforge:${project.scf_neoforge_version}:with-library") {
+        transitive = false
+    }
+
+    compileOnly "org.scala-lang:scala3-library_3:${project.scala3_version}"
+    // cats provided by SCF at runtime (bundled in `-with-library` jar); compileOnly for CommandHandler's
+    // `cats.syntax.either.*` and similar imports.
+    compileOnly "org.typelevel:cats-core_3:2.12.0"
+
+    // Intentionally no Mixin annotation processor on NeoForge: runtime is Mojmap-native so no refmap
+    // is needed, and the AP would otherwise demand obfuscation mappings that don't exist.
+    // Validation still happens on the Fabric + common modules (which DO run the AP).
+
+    // Circe + cats are both bundled into the mod jar at their natural paths (`io/circe/**` and
+    // `cats/**`). SCF's bundled `cats-core_3:2.12.1-kotori` has `cats.instances.*` renamed to
+    // PascalCase-with-I-suffix (`EitherI`, `ListI`, etc.), so standard circe — compiled against
+    // vanilla cats — can't resolve the classes it expects (`cats.instances.package$either$` etc.)
+    // when running against SCF's cats alone. Bundling vanilla cats satisfies those references
+    // from within our own mod module. Still excluding scala-lang: SCF is the sole scala provider.
+    def shadowExcludes = { d ->
+        d.exclude group: 'org.scala-lang'
+    }
+    def shadowCoords = [
+        "io.circe:circe-parser_3:${project.circe_version}",
+        "io.circe:circe-generic_3:${project.circe_version}",
+        "io.circe:circe-generic-extras_3:${project.circe_extras_version}",
+        "io.circe:circe-config_3:${project.circe_config_version}",
+        "org.typelevel:cats-core_3:2.13.0",   // vanilla, same package as SCF's rename but with the
+                                              // standard `either`/`list`/etc. object names circe expects
+    ]
+    shadowCoords.each { coord ->
+        shadow(coord, shadowExcludes)
+        ['client', 'server', 'data', 'gameTestServer'].each { run ->
+            add("${run}AdditionalRuntimeClasspath", coord, shadowExcludes)
+        }
+    }
+
+    // Testing (Tier 1 — JUnit 5)
+    testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// java-mixin-stubber
+def mixinstubsDir = file("$compileJava.temporaryDir/mixinstubs")
+sourceSets.main.java.srcDirs += mixinstubsDir
+
+task mixinstubs {
+    doLast {
+        delete(mixinstubsDir)
+        de.lolhens.jstubber.Stubber.MIXIN.stubDirectory(
+            project(':common-1.21.1').file('src/main/scala').toPath(),
+            mixinstubsDir.toPath()
+        )
+    }
+}
+compileJava.dependsOn(mixinstubs)
+compileJava.doLast {
+    delete(compileJava.destinationDirectory)
+    delete(mixinstubsDir)
+}
+
+compileScala.doFirst {
+    compileScala.options.compilerArgs += compileJava.options.compilerArgs
+}
+
+// Note: no SpongePowered MixinGradle plugin on NeoForge 1.20.5+ — the runtime is Mojmap-native so
+// no refmap is needed, and ModDevGradle picks up fluidphysics.mixins.json via the [[mixins]] entry
+// in neoforge.mods.toml. The annotation processor below still validates targets at compile time.
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand 'version': project.version
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.encoding = 'UTF-8'
+    scalaCompileOptions.additionalParameters = ['-release', '21']
+}
+
+// Shadow plugin rewrites `cats` references everywhere in the output jar — inside circe's
+// bundled bytecode AND our own compiled Scala code — onto a mod-private namespace. This fixes
+// two JPMS constraints simultaneously:
+//   1. Cross-layer split package: SCF's `kotori_scala` module (plugin layer) exports `cats.**`.
+//      A second module in the game layer (us) with its own `cats.**` is rejected by the secure-
+//      jar resolver. Moving our copy out of `cats.**` removes the duplicate.
+//   2. Keyword package names: vanilla cats-kernel has sub-packages literally named `byte`,
+//      `char`, `short`, etc. (not valid Java identifiers). JPMS refuses a module descriptor
+//      for any jar containing them. We rename those 8 to `_byte`, `_char`, … under the shaded
+//      namespace; shadow rewrites internal references to match.
+// Circe stays at `io/circe/**` — unchanged. Only cats gets renamed.
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveClassifier.set('')   // replace the plain jar so NeoForge picks up the shadowed one
+    mergeServiceFiles()
+
+    // Do NOT bundle scala stdlib — SCF provides it, a duplicate would recreate the original
+    // `scala.runtime` split-package crash.
+    exclude 'scala/**'
+    exclude 'scala3/**'
+
+    // Specific rewrites for the 8 keyword-named sub-packages. These are matched BEFORE the
+    // general `cats` → shaded rule because shadow's matcher prefers longer prefixes.
+    relocate 'cats.kernel.instances.byte',    'de.lolhens.fluidphysics.shaded.cats.kernel.instances._byte'
+    relocate 'cats.kernel.instances.char',    'de.lolhens.fluidphysics.shaded.cats.kernel.instances._char'
+    relocate 'cats.kernel.instances.short',   'de.lolhens.fluidphysics.shaded.cats.kernel.instances._short'
+    relocate 'cats.kernel.instances.int',     'de.lolhens.fluidphysics.shaded.cats.kernel.instances._int'
+    relocate 'cats.kernel.instances.long',    'de.lolhens.fluidphysics.shaded.cats.kernel.instances._long'
+    relocate 'cats.kernel.instances.float',   'de.lolhens.fluidphysics.shaded.cats.kernel.instances._float'
+    relocate 'cats.kernel.instances.double',  'de.lolhens.fluidphysics.shaded.cats.kernel.instances._double'
+    relocate 'cats.kernel.instances.boolean', 'de.lolhens.fluidphysics.shaded.cats.kernel.instances._boolean'
+
+    // Catch-all for everything else under cats.
+    relocate 'cats', 'de.lolhens.fluidphysics.shaded.cats'
+
+    manifest {
+        attributes([
+            'Specification-Title'    : project.name,
+            'Specification-Vendor'   : parent.project.mod_author,
+            'Specification-Version'  : '1',
+            'Implementation-Title'   : project.name,
+            'Implementation-Version' : "${version}",
+            'Implementation-Vendor'  : parent.project.mod_author,
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            'MixinConfigs'           : 'fluidphysics.mixins.json',
+        ])
+    }
+}
+
+// Replace the default `jar` output with the shadowed jar so NeoForge / publishing / etc. see it.
+tasks.named('jar') { enabled = false }
+tasks.named('assemble') { dependsOn tasks.named('shadowJar') }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        // publish locally if desired
+    }
+}

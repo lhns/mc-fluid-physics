@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "fluidphysics",
+  "version": "${version}",
+  "name": "Fluid Physics",
+  "description": "This mod blends together vanilla fluid mechanics with something a little more realistic plus some small additions.",
+  "authors": [
+    "LolHens"
+  ],
+  "contact": {
+    "homepage": "https://github.com/LolHens/mc-fluid-physics",
+    "sources": "https://github.com/LolHens/mc-fluid-physics",
+    "issues": "https://github.com/LolHens/mc-fluid-physics/issues"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/fluidphysics/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "scala",
+        "value": "de.lolhens.minecraft.fluidphysics.FluidPhysicsFabric"
+      }
+    ]
+  },
+  "mixins": [
+    "fluidphysics.mixins.json"
+  ],
+  "depends": {
+    "scalable-cats-force-fabric": "*",
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

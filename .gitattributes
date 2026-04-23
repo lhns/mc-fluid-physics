@@ -1,0 +1,14 @@
+* text=auto
+
+# Keep shell scripts LF-only so CI (Ubuntu) runs them without "bad interpreter" errors.
+gradlew text eol=lf
+gradlew-1.21.1 text eol=lf
+
+# Windows batch files stay CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets — don't normalize.
+*.png binary
+*.jar binary
+*.nbt binary

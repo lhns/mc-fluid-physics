@@ -1,0 +1,10 @@
+// Alternate settings file for the Minecraft 1.21.1 modules only (Scala 3, Mojmap+Parchment,
+// Fabric Loom 1.7 and ModDevGradle). Invoke via ./gradlew-1.21.1 which passes this file and
+// points at the Gradle 8.10 wrapper under gradle-1.21.1/. The default settings.gradle lists
+// the legacy 1.15.2-1.18.2 modules and is used by the default ./gradlew on Gradle 7.3.
+
+rootProject.name = 'mc-fluid-physics'
+
+include ':common-1.21.1'
+include ':fabric-1.21.1'
+include ':neoforge-1.21.1'
