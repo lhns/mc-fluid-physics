@@ -25,6 +25,18 @@ configurations {
     implementation.extendsFrom(shadow)
 }
 
+// `fabric-language-scala:1.1.0+scala.2.13.6` pulls scala-compiler 2.13.6 and scala-library 2.13.8.
+// 2.13.6/2.13.8 has a `MethodParameters` attribute parser bug (scala/bug#12783) that crashes with
+// "bad constant pool index: 0" when reading MC/Fabric 1.20.1 class files. Fixed in 2.13.9+.
+// Pin to 2.13.12 — a late 2.13.x that still works with the circe 0.14.2 / cats 2.7.0 2.13 ecosystem.
+configurations.all {
+    resolutionStrategy.force(
+        'org.scala-lang:scala-compiler:2.13.12',
+        'org.scala-lang:scala-library:2.13.12',
+        'org.scala-lang:scala-reflect:2.13.12'
+    )
+}
+
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
