@@ -34,7 +34,11 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "net.fabricmc:fabric-language-scala:1.1.0+"
+    // 1.1.0+ resolved to fabric-language-scala:1.1.0+scala.2.13.6, whose scala-compiler 2.13.6
+    // has a MethodParameters attribute parser bug (scala/bug#12783, fixed in 2.13.9+) that
+    // crashes with "bad constant pool index: 0" when reading MC/Fabric 1.20.1 class files.
+    // 1.7.8+scala.2.13.10 transitively brings a patched compiler.
+    modImplementation "net.fabricmc:fabric-language-scala:1.7.8+scala.2.13.10"
 
     shadow "io.circe:circe-parser_2.13:0.14.2"
     shadow "io.circe:circe-generic_2.13:0.14.2"
