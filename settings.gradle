@@ -13,6 +13,7 @@ include ':forge-1.16.2'
 include ':forge-1.16.4'
 include ':forge-1.17'
 include ':forge-1.18'
+include ':fabric-1.20.1'
 // NOTE: the :common-1.21.1, :fabric-1.21.1, :neoforge-1.21.1 modules are NOT listed here.
 // They require Gradle 8.10 (ModDevGradle + Loom 1.7), while the legacy modules above use
 // ForgeGradle 5.1 which is pinned to Gradle 7. Build those via ./gradlew-1.21.1 which uses
