@@ -27,7 +27,7 @@
     "fluidphysics.mixins.json"
   ],
   "depends": {
-    "scalable-cats-force-fabric": "*",
+    "kotori_scala": "*",
     "fabricloader": ">=0.16.0",
     "fabric-api": "*",
     "minecraft": "~1.21.1",
