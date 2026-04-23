@@ -25,21 +25,12 @@ configurations {
     implementation.extendsFrom(shadow)
 }
 
-// `fabric-language-scala:1.1.0+scala.2.13.6` pulls scala-compiler 2.13.6 and scala-library 2.13.8.
-// 2.13.6/2.13.8 has a `MethodParameters` attribute parser bug (scala/bug#12783) that crashes with
-// "bad constant pool index: 0" when reading MC/Fabric 1.20.1 class files. Fixed in 2.13.9+.
-// Pin scala to 2.13.12 and Zinc to 1.9.6 (Gradle 7.3.1's default Zinc is 1.3.5 which refuses
-// scala-library > 2.13.8). Using `.set()` + afterEvaluate because plain `zincVersion = '...'`
-// didn't register through fabric-loom's project configuration order.
-scala {
-    zincVersion.set('1.9.6')
-}
-afterEvaluate {
-    scala.zincVersion.set('1.9.6')
-}
+// `fabric-language-scala:1.1.0+` brings scala-compiler 2.13.6/8, which crashes compiling
+// 1.20.1 class files via scala/bug#12783 (MethodParameters parser, fixed in 2.13.9+). Force
+// scala to 2.13.12. Requires Gradle >= 7.5 — Gradle 7.3/7.4's default Zinc is built for
+// scala 2.12 and hard-rejects any 2.13.x library regardless of `scala.zincVersion` override.
 configurations.all {
     resolutionStrategy.force(
-        'org.scala-sbt:zinc_2.12:1.9.6',
         'org.scala-lang:scala-compiler:2.13.12',
         'org.scala-lang:scala-library:2.13.12',
         'org.scala-lang:scala-reflect:2.13.12'
