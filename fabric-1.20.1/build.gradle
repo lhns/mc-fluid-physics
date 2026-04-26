@@ -30,6 +30,9 @@ configurations {
 // scala to 2.13.12. Gradle 7.3.1's default Zinc is built for scala 2.12 and its `afterResolve`
 // safeguard rejects any 2.13.x scala-library — bypass it by adding an explicit `zinc` dep
 // below, which prevents `defaultDependencies` (and the nested safeguard) from registering.
+// Pinned to zinc_2.12:1.3.5 (matches Gradle 7.3.1's bundled default): Zinc 1.4+ migrated
+// AnalyzingCompiler.compileSources from File to Path and Gradle 7.3.1's plugin code still
+// calls the old File-based signature, so any newer Zinc gives NoSuchMethodError at compile.
 configurations.all {
     resolutionStrategy.force(
         'org.scala-lang:scala-compiler:2.13.12',
@@ -39,7 +42,7 @@ configurations.all {
 }
 
 dependencies {
-    zinc 'org.scala-sbt:zinc_2.13:1.9.6'
+    zinc 'org.scala-sbt:zinc_2.12:1.3.5'
 
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
