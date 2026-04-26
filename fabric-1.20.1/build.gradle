@@ -1,3 +1,5 @@
+// READ FIRST if you are about to "clean up" the scala/zinc setup below:
+// docs/fabric-1.20.1-build.md — every line in the scala/zinc/force section is load-bearing.
 buildscript {
     repositories {
         maven {
