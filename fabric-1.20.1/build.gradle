@@ -27,8 +27,9 @@ configurations {
 
 // `fabric-language-scala:1.1.0+` brings scala-compiler 2.13.6/8, which crashes compiling
 // 1.20.1 class files via scala/bug#12783 (MethodParameters parser, fixed in 2.13.9+). Force
-// scala to 2.13.12. Requires Gradle >= 7.5 — Gradle 7.3/7.4's default Zinc is built for
-// scala 2.12 and hard-rejects any 2.13.x library regardless of `scala.zincVersion` override.
+// scala to 2.13.12. Gradle 7.3.1's default Zinc is built for scala 2.12 and its `afterResolve`
+// safeguard rejects any 2.13.x scala-library — bypass it by adding an explicit `zinc` dep
+// below, which prevents `defaultDependencies` (and the nested safeguard) from registering.
 configurations.all {
     resolutionStrategy.force(
         'org.scala-lang:scala-compiler:2.13.12',
@@ -38,6 +39,8 @@ configurations.all {
 }
 
 dependencies {
+    zinc 'org.scala-sbt:zinc_2.13:1.9.6'
+
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
