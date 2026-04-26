@@ -15,13 +15,14 @@
 // Java 16+ pattern matching (e.g. `x instanceof Level level`). Keep the .java mixins on
 // Java 15-compatible syntax (plain `instanceof` + cast).
 
+// fabric-loom is declared in build-1.21.1.gradle's plugins{} block (with `apply false`) so all
+// 1.21.1 subprojects share ONE loom classloader. Without that, RemapJarTask cross-classloader
+// casts blow up. The stubber dep is build-only and stays in this subproject's buildscript.
 buildscript {
     repositories {
-        maven { url = 'https://maven.fabricmc.net/' }
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'net.fabricmc:fabric-loom:1.7-SNAPSHOT'
         classpath 'de.lolhens:java-mixin-stubber:0.0.2'
     }
 }
@@ -66,7 +67,7 @@ dependencies {
     compileOnly "io.circe:circe-generic_3:${project.circe_version}"
     compileOnly "io.circe:circe-generic-extras_3:${project.circe_extras_version}"
     compileOnly "io.circe:circe-config_3:${project.circe_config_version}"
-    compileOnly "org.typelevel:cats-core_3:2.12.0"
+    compileOnly "org.typelevel:cats-core_3:${project.cats_version}"
 }
 
 def mixinstubsDir = file("$compileJava.temporaryDir/mixinstubs")

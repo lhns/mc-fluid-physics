@@ -3,7 +3,24 @@
 // points at the Gradle 8.10 wrapper under gradle-1.21.1/. The default settings.gradle lists
 // the legacy 1.15.2-1.18.2 modules and is used by the default ./gradlew on Gradle 7.3.
 
+pluginManagement {
+    // Composite-build mcdp (MC Dependency Provider) so the Gradle plugin id "de.lhns.mcdp"
+    // resolves without a publish step. mc-scala lives as a sibling checkout.
+    includeBuild('../mc-scala')
+
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.neoforged.net/releases/' }
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'mc-fluid-physics'
+// Use a separate root build file so fabric-loom + de.lhns.mcdp can be declared in a shared
+// plugins {} block without colliding with the legacy build.gradle (Gradle 7.3 / ForgeGradle 5,
+// which can't resolve those plugin coords). See build-1.21.1.gradle for why a shared
+// plugin classloader is required (loom RemapJarTask cross-classloader cast).
+rootProject.buildFileName = 'build-1.21.1.gradle'
 
 include ':common-1.21.1'
 include ':fabric-1.21.1'

@@ -18,7 +18,7 @@
   "entrypoints": {
     "main": [
       {
-        "adapter": "scala",
+        "adapter": "mcdepprovider",
         "value": "de.lolhens.minecraft.fluidphysics.FluidPhysicsFabric"
       }
     ]
@@ -27,7 +27,7 @@
     "fluidphysics.mixins.json"
   ],
   "depends": {
-    "kotori_scala": "*",
+    "mcdepprovider": "*",
     "fabricloader": ">=0.16.0",
     "fabric-api": "*",
     "minecraft": "~1.21.1",

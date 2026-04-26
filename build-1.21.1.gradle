@@ -1,0 +1,25 @@
+// Root build file for the Minecraft 1.21.1 modules only. Loaded via settings-1.21.1.gradle's
+// `rootProject.buildFileName = 'build-1.21.1.gradle'` so the legacy ./gradlew (Gradle 7.3,
+// Java 17, ForgeGradle 5) keeps using the plain build.gradle alongside.
+//
+// Why this file exists: the 1.21.1 modules need fabric-loom and de.lhns.mcdp on a SHARED
+// plugin classloader across subprojects. Without it, :common-1.21.1 and :fabric-1.21.1 each
+// load fabric-loom into their own classloader, and loom's RemapJarTask hits
+// `cannot cast BuildSharedServiceManager$Inject to BuildSharedServiceManager` at task-create
+// time. Declaring the plugins here with `apply false` puts them on the root classloader;
+// subprojects re-`apply plugin:` and reuse it.
+
+plugins {
+    id 'idea'
+    id 'fabric-loom' version '1.7-SNAPSHOT' apply false
+    // Composite-built from ../mc-scala via settings-1.21.1.gradle's pluginManagement.
+    id 'de.lhns.mcdp' apply false
+}
+
+version = project.mod_version
+group = project.maven_group
+
+def tagPrefix = "refs/tags/"
+if ((System.getenv("CI_VERSION") ?: "").startsWith(tagPrefix)) {
+    version = System.getenv("CI_VERSION").drop(tagPrefix.length()).takeWhile { it != '+' }
+}
