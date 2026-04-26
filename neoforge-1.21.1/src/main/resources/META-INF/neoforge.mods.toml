@@ -1,0 +1,39 @@
+modLoader = "kotori_scala"
+# Wildcard per the Kotori316/SLP canonical example — the mod works with any kotori_scala
+# language provider. The actual SCF version we develop against is pinned in gradle.properties.
+loaderVersion = "[1.0.0,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/LolHens/mc-fluid-physics/issues"
+
+[[mods]]
+modId = "fluidphysics"
+version = "${version}"
+displayName = "Fluid Physics"
+displayURL = "https://github.com/LolHens/mc-fluid-physics"
+logoFile = "icon.png"
+authors = "LolHens"
+description = '''
+This mod blends together vanilla fluid mechanics with something a little more realistic plus some small additions.
+'''
+
+[[mixins]]
+config = "fluidphysics.mixins.json"
+
+[[dependencies.fluidphysics]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fluidphysics]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+# No explicit dependency on SCF needed: the `modLoader = "kotori_scala"` + `loaderVersion` pair at
+# the top of this file triggers the language-provider presence check. SCF loads as FMLModType=
+# LIBRARY and doesn't register a mod id, so a `[[dependencies]]` entry against 'scalablecatsforce'
+# would fail with `Actual version: '[MISSING]'` even though SCF is correctly on the classpath.

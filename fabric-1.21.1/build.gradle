@@ -1,0 +1,141 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'net.fabricmc:fabric-loom:1.7-SNAPSHOT'
+        classpath 'de.lolhens:java-mixin-stubber:0.0.2'
+    }
+}
+
+apply plugin: 'fabric-loom'
+apply plugin: 'scala'
+apply plugin: 'maven-publish'
+
+archivesBaseName = parent.project.archives_base_name
+version = parent.version + "+fabric-${project.minecraft_version}"
+group = parent.group
+
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
+
+// Pull in shared sources from common-1.21.1. All mixins + Scala co-live under src/main/scala/
+// so scalac does joint compilation. The platform module's own java.srcDir is used for the
+// mixinstub output only (see below).
+sourceSets.main.scala.srcDirs += project(':common-1.21.1').file('src/main/scala')
+sourceSets.main.resources.srcDirs += project(':common-1.21.1').file('src/main/resources')
+
+repositories {
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    maven {
+        name = 'Kotori316 Maven'
+        url = 'https://maven.kotori316.com'
+    }
+    mavenCentral()
+}
+
+configurations {
+    implementation.extendsFrom(shadow)
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.parchment_minecraft}:${project.parchment_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Scala language provider (registers the "scala" language adapter + provides Scala 3 stdlib at runtime).
+    modImplementation "com.kotori316:scalable-cats-force-fabric:${project.slp_fabric_version}"
+    include           "com.kotori316:scalable-cats-force-fabric:${project.slp_fabric_version}"
+
+    compileOnly "org.scala-lang:scala3-library_3:${project.scala3_version}"
+
+    shadow "io.circe:circe-parser_3:${project.circe_version}"
+    shadow "io.circe:circe-generic_3:${project.circe_version}"
+    shadow "io.circe:circe-generic-extras_3:${project.circe_extras_version}"
+    shadow "io.circe:circe-config_3:${project.circe_config_version}"
+}
+
+// java-mixin-stubber
+def mixinstubsDir = file("$compileJava.temporaryDir/mixinstubs")
+sourceSets.main.java.srcDirs += mixinstubsDir
+
+task mixinstubs {
+    doLast {
+        delete(mixinstubsDir)
+        // Generate stubs from common-1.21.1's Scala sources (the module-local scala srcDirs is empty; sources live in common)
+        de.lolhens.jstubber.Stubber.MIXIN.stubDirectory(
+            project(':common-1.21.1').file('src/main/scala').toPath(),
+            mixinstubsDir.toPath()
+        )
+    }
+}
+compileJava.dependsOn(mixinstubs)
+compileJava.doLast {
+    delete(compileJava.destinationDirectory)
+    delete(mixinstubsDir)
+}
+
+compileScala.doFirst {
+    compileScala.options.compilerArgs += compileJava.options.compilerArgs
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.encoding = 'UTF-8'
+    scalaCompileOptions.additionalParameters = ['-release', '21']
+}
+
+java {
+    withSourcesJar()
+}
+
+// Mixin source files (.java) live under src/main/scala alongside the Scala code, and the stubber
+// also emits .java stubs into mixinstubsDir which is added to java.srcDirs. Both paths find the
+// same filenames; keep only one copy in the sources jar.
+tasks.named('sourcesJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar {
+    from('LICENSE') {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
+    from {
+        configurations.shadow.collect { file ->
+            ['scala3-library', 'scala-library'].any { file.toString().contains(it) }
+                ? null
+                : (file.isDirectory() ? file : zipTree(file))
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact(remapJar) { builtBy remapJar }
+            artifact(sourcesJar) { builtBy remapSourcesJar }
+        }
+    }
+    repositories {
+        // publish locally if desired
+    }
+}

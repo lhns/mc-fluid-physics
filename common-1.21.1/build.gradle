@@ -1,0 +1,103 @@
+// Common module — Scala 3 sources + Java mixins shared by fabric-1.21.1 and neoforge-1.21.1.
+// Not itself a loaded mod. Uses Fabric Loom purely for the Minecraft (Mojmap+Parchment) classpath,
+// so IntelliJ and the Scala compiler can resolve MC types while editing shared code.
+//
+// Layout (same pattern as legacy forge-1.18):
+//   src/main/scala/  holds BOTH .scala and .java (mixin) sources — scalac joint-compiles them.
+//   src/main/java/   is wired only to the stubber output dir. The stubber takes the .java mixin
+//                    files from src/main/scala, strips their bodies and project-local imports,
+//                    and emits stubs. compileJava builds just those stubs so the Mixin
+//                    annotation processor runs (validates @Mixin targets + generates refmap on
+//                    Fabric). compileJava's class output is deleted afterwards so no duplicate
+//                    classes ship — the real bytecode comes from compileScala's joint pass.
+//
+// Gotcha: the bundled JavaParser in java-mixin-stubber 0.0.2 is from 2020 and cannot parse
+// Java 16+ pattern matching (e.g. `x instanceof Level level`). Keep the .java mixins on
+// Java 15-compatible syntax (plain `instanceof` + cast).
+
+buildscript {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'net.fabricmc:fabric-loom:1.7-SNAPSHOT'
+        classpath 'de.lolhens:java-mixin-stubber:0.0.2'
+    }
+}
+
+apply plugin: 'fabric-loom'
+apply plugin: 'scala'
+
+archivesBaseName = parent.project.archives_base_name + '-common'
+version = parent.version
+group = parent.group
+
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
+
+repositories {
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    maven {
+        name = 'SpongePowered'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.parchment_minecraft}:${project.parchment_version}@zip")
+    }
+
+    compileOnly "org.scala-lang:scala3-library_3:${project.scala3_version}"
+
+    compileOnly "org.spongepowered:mixin:0.8.7"
+    annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
+
+    // circe (compile-only in common — it's bundled at runtime by the platform jars).
+    compileOnly "io.circe:circe-core_3:${project.circe_version}"
+    compileOnly "io.circe:circe-parser_3:${project.circe_version}"
+    compileOnly "io.circe:circe-generic_3:${project.circe_version}"
+    compileOnly "io.circe:circe-generic-extras_3:${project.circe_extras_version}"
+    compileOnly "io.circe:circe-config_3:${project.circe_config_version}"
+    compileOnly "org.typelevel:cats-core_3:2.12.0"
+}
+
+def mixinstubsDir = file("$compileJava.temporaryDir/mixinstubs")
+sourceSets.main.java.srcDirs = [mixinstubsDir]
+
+task mixinstubs {
+    doLast {
+        delete(mixinstubsDir)
+        de.lolhens.jstubber.Stubber.MIXIN.stubDirectory(
+            file('src/main/scala').toPath(),
+            mixinstubsDir.toPath()
+        )
+    }
+}
+
+compileJava.dependsOn(mixinstubs)
+compileJava.doLast {
+    delete(compileJava.destinationDirectory)
+    delete(mixinstubsDir)
+}
+
+compileScala.doFirst {
+    compileScala.options.compilerArgs += compileJava.options.compilerArgs
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.encoding = 'UTF-8'
+    scalaCompileOptions.additionalParameters = ['-release', '21']
+}
