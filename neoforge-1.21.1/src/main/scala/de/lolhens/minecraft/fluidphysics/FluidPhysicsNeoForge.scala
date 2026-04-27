@@ -5,7 +5,6 @@ import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.server.level.ServerLevel
 import net.neoforged.bus.api.IEventBus
-import net.neoforged.fml.ModContainer
 import net.neoforged.fml.common.Mod
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
 import net.neoforged.fml.loading.FMLPaths
@@ -18,11 +17,11 @@ import net.neoforged.neoforge.registries.RegisterEvent
 
 import java.nio.file.Path
 
-// NeoForge 1.20.5+ removed FMLJavaModLoadingContext.get(). The ScalableCatsForce "kotori_scala"
-// modloader instantiates this class with (IEventBus modBus, ModContainer container) — same as
-// the Java mod constructor pattern NeoForge introduced in 1.20.5.
+// mcdp's NeoForge loader fills constructor parameters from a context bag of [IEventBus, Dist]
+// (see de.lhns.mcdp.core.JavaEntrypointAdapter). ModContainer is intentionally not in that bag,
+// so this signature is just (IEventBus). vanilla javafml accepts the same shape.
 @Mod("fluidphysics")
-class FluidPhysicsNeoForge(modBus: IEventBus, container: ModContainer) {
+class FluidPhysicsNeoForge(modBus: IEventBus) {
 
   Platform.register(new Platform {
     override def configDir: Path = FMLPaths.CONFIGDIR.get()
