@@ -39,11 +39,13 @@ repositories {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
-    // Required for de.lhns.mcdp:mcdp — the unified runtime adapter (ADR-0016) is published
-    // as a shadow jar to mavenLocal by mc-scala (composite substitution can't replace the
-    // shadow jar; see ADR-0012 in mc-scala/docs/). Workflow before any runClient / build:
-    //   ../mc-scala/gradlew :mcdp:publishToMavenLocal
-    mavenLocal()
+    // Sonatype Central Portal snapshots repo — hosts the unified `de.lhns.mcdp:mcdp` jar
+    // (ADR-0016) at SNAPSHOT versions. The Gradle plugin lives there too; see
+    // settings-1.21.1.gradle's pluginManagement.repositories.
+    maven {
+        name = 'sonatype-central-snapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+    }
     maven {
         name = 'SpongePowered'
         url = 'https://repo.spongepowered.org/repository/maven-public/'

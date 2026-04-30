@@ -43,16 +43,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Grant execute permission for gradlew-1.21.1
         run: chmod +x gradlew-1.21.1
-      # mcdp (MC Dependency Provider) is composite-built from a sibling checkout of
-      # mc-dependency-provider via settings-1.21.1.gradle's pluginManagement.includeBuild. The
-      # *runtime* artifact `de.lhns.mcdp:mcdp` is a shadow jar (the unified-jar from ADR-0016
-      # bundling both Fabric and NeoForge adapters) and has to land in mavenLocal explicitly —
-      # composite substitution can't replace shadow jars (mc-scala/docs/ ADR-0012). Clone +
-      # publish before running the 1.21.1 build.
-      - name: Check out mcdp (mc-dependency-provider) as a sibling checkout
-        run: git clone --depth 1 https://gitea.lhns.de/lhns/mc-dependency-provider.git ../mc-scala
-      - name: Publish mcdp runtime artifact to mavenLocal
-        run: ../mc-scala/gradlew --project-dir ../mc-scala :mcdp:publishToMavenLocal --no-daemon
+      # mcdp (MC Dependency Provider) is consumed from the Sonatype Central Portal snapshots
+      # repo — both the Gradle plugin and the unified runtime artifact `de.lhns.mcdp:mcdp`
+      # (ADR-0016). Repo URLs configured in settings-1.21.1.gradle and the per-subproject
+      # build.gradle. No sibling checkout step needed.
       # neoforge-1.21.1's dev run tasks (runGameTestServer, runData, runClient) are deferred:
       # `build` is the canonical CI check; real-instance smoke testing covers what gametests
       # would cover.

@@ -12,7 +12,9 @@
 plugins {
     id 'idea'
     id 'fabric-loom' version '1.7-SNAPSHOT' apply false
-    // Composite-built from ../mc-scala via settings-1.21.1.gradle's pluginManagement.
+    // Version pinned centrally in settings-1.21.1.gradle's pluginManagement.plugins {}
+    // block (Gradle's plugins{} doesn't accept ${...} interpolation in version strings).
+    // Resolved from the Sonatype Central Portal snapshots repo.
     id 'de.lhns.mcdp' apply false
 }
 
