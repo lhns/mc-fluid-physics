@@ -11,20 +11,21 @@ The 1.21.1 multi-loader port shipped with two different Scala 3 language provide
 
 The whole stack is documented in [neoforge-1.21.1-cats-integration.md](neoforge-1.21.1-cats-integration.md) — eight relocations, one shadowJar, two parallel cats copies in memory at runtime.
 
-mcdp solves both problems with one mechanism: each opted-in mod gets its own `URLClassLoader`. Maven deps stay in that loader's *unnamed* JPMS module (so the keyword check never fires), and each mod sees its own copy of every dep (so version conflicts can't happen). No bytecode rewriting, no library forks, no relocations. One language provider for both loaders.
+mcdp solves both problems with one mechanism: each opted-in mod gets its own `URLClassLoader`. Maven deps stay in that loader's *unnamed* JPMS module (so the keyword check never fires), and each mod sees its own copy of every dep (so version conflicts can't happen). No bytecode rewriting (for deps), no library forks, no relocations. One language provider for both loaders.
 
 ## Build wiring
 
 mcdp lives at `C:/Users/pierr/Documents/git/mc-scala` (sibling checkout, repo `gitea.lhns.de/lhns/mc-dependency-provider`). The 1.21.1 build pulls it in via composite include:
 
-- **`settings-1.21.1.gradle`** — `pluginManagement { includeBuild('../mc-scala') }` so the Gradle plugin id `de.lhns.mcdp` resolves without a publish.
-- **`fabric-1.21.1/build.gradle` & `neoforge-1.21.1/build.gradle`** — `mavenLocal()` is added to the per-subproject repositories. The plugin is composite-built, but the *runtime* artifacts (`de.lhns.mcdp:mcdp-fabric`, `de.lhns.mcdp:mcdp-neoforge`) are shadow jars and have to be published to mavenLocal explicitly. Workflow before any rebuild:
+- **`settings-1.21.1.gradle`** — `pluginManagement { includeBuild('../mc-scala') }` so the Gradle plugin id `de.lhns.mcdp` resolves without a publish, plus a top-level `includeBuild('../mc-scala')` so module substitution maps `de.lhns.mcdp:mcdp` to the `:mcdp` subproject (per ADR-0016).
+- **`build-1.21.1.gradle`** — declares `fabric-loom` and `de.lhns.mcdp` in a shared root `plugins {}` block with `apply false`. Without this, `:common-1.21.1` and `:fabric-1.21.1` would each load loom into a separate classloader and `RemapJarTask` blows up with `cannot cast BuildSharedServiceManager$Inject to BuildSharedServiceManager`.
+- **`fabric-1.21.1/build.gradle` & `neoforge-1.21.1/build.gradle`** — `mavenLocal()` is added to the per-subproject repositories. The plugin is composite-built, but the *runtime* artifact `de.lhns.mcdp:mcdp` is a shadow jar (per ADR-0012 in mc-scala/docs/) and has to be published to mavenLocal explicitly. Workflow before any rebuild:
 
   ```
-  ../mc-scala/gradlew :fabric:publishToMavenLocal :neoforge:publishToMavenLocal
+  ../mc-scala/gradlew :mcdp:publishToMavenLocal
   ```
 
-  (mc-scala's ADR-0012 explains why composite substitution can't replace the shadow jar — Fabric's `ClasspathModCandidateFinder` rejects the per-subproject classes-dir output.)
+  ADR-0016 unified the two prior platform-specific artifacts (`mcdp-fabric`, `mcdp-neoforge`) into a single jar that runs unmodified on either loader. There's only one publishing target now.
 
 ## Per-loader changes
 
@@ -33,10 +34,10 @@ mcdp lives at `C:/Users/pierr/Documents/git/mc-scala` (sibling checkout, repo `g
 - Drop `com.kotori316:scalable-cats-force-fabric` (both `modImplementation` and `include`).
 - Drop the `Kotori316 Maven` repository entry.
 - Drop the entire `shadow` configuration that bundled circe into the mod jar (and the matching `jar { from { configurations.shadow.collect ... } }` block).
-- Add `id 'de.lhns.mcdp'` in the `plugins {}` block (composite-resolved).
-- Add `modImplementation 'de.lhns.mcdp:mcdp-fabric:0.1.0-SNAPSHOT'`.
+- `apply plugin: 'de.lhns.mcdp'` (composite-resolved; declared in `build-1.21.1.gradle` with `apply false`).
+- Add `modImplementation 'de.lhns.mcdp:mcdp:0.1.0-SNAPSHOT'` (unified artifact, ADR-0016).
 - Move `scala3-library_3`, `circe-*`, and `cats-core_3` from `compileOnly` / `shadow` to `mcdepImplementation` — that's mcdp's opt-in bucket. The Gradle plugin walks its transitive closure and emits each library into the manifest.
-- Add `mcdepprovider { lang.set('scala') }`.
+- `mcdepprovider { lang.set('scala'); bridges { bridgePackage.set(...) }; sharedPackages.add(...) }` — see "Mixin auto-bridge codegen" below.
 - `fabric.mod.json`: `"adapter": "scala"` → `"adapter": "mcdepprovider"`, and depends `"kotori_scala"` → `"mcdepprovider"`.
 
 ### NeoForge (`neoforge-1.21.1/build.gradle`, `neoforge-1.21.1/src/main/resources/META-INF/neoforge.mods.toml`)
@@ -47,43 +48,62 @@ mcdp lives at `C:/Users/pierr/Documents/git/mc-scala` (sibling checkout, repo `g
 - Drop the `additionalRuntimeClasspath` glue that fed shaded cats/circe into MDG dev runs.
 - Drop the `Kotori316 Maven` repository entry.
 - Add `id 'de.lhns.mcdp'` to the `plugins {}` block.
-- Add `implementation 'de.lhns.mcdp:mcdp-neoforge:0.1.0-SNAPSHOT'`.
+- Add `implementation 'de.lhns.mcdp:mcdp:0.1.0-SNAPSHOT'` (unified artifact, ADR-0016).
 - Move `scala3-library_3`, `circe-*`, and `cats-core_3` from `compileOnly` / `shadow` to `mcdepImplementation`. No `excludeGroup` / platform-enumeration bookkeeping needed — the plugin auto-subtracts platform-provided artifacts.
-- Add `mcdepprovider { lang.set('scala') }`.
+- `mcdepprovider { lang.set('scala'); bridges { bridgePackage.set(...) }; sharedPackages.add(...) }` — see "Mixin auto-bridge codegen" below.
 - `neoforge.mods.toml`: `modLoader = "kotori_scala"` → `modLoader = "mcdepprovider"`. **No** `[modproperties]` block — mcdp rediscovers `@Mod`-annotated classes via `ModFileScanData.getAnnotatedBy(Mod.class)` exactly like vanilla javafml.
 
-`FluidPhysicsNeoForge.scala` is unchanged: mcdp's NeoForge loader matches FML's default `(IEventBus)` constructor shape directly.
+`FluidPhysicsNeoForge.scala` keeps a `(IEventBus)` ctor: mcdp's NeoForge loader builds a context bag of `[IEventBus, ModContainer, Dist]` with subset matching (ADR-0017), so `()`, `(IEventBus)`, `(ModContainer)`, or any subset/superset all resolve.
+
+## Mixin auto-bridge codegen
+
+The mod has 9 mixins (~447 LOC) that call into Scala helpers (`FluidPhysicsMod`, `FluidPhysicsConfig`, `FluidIsInfinite`, `FluidSourceFinder`, `SpringBlockFeature`). With mcdp's per-mod classloader, those classes live in a child loader that game-layer mixin handlers can't see directly — without intervention every mixin handler crashes with `NoClassDefFoundError: scala/runtime/LazyVals$`.
+
+ADR-0018's auto-bridge codegen handles this transparently. The mixins stay as plain Sponge-Common-style code calling Scala objects directly; the gradle plugin's `:generateMcdpBridges` task scans compiled mixin bytecode, synthesizes a bridge interface + impl + manifest per cross-classloader call site, and rewrites the mixin's method bodies to dispatch through the bridge. Codegen is on by default — there is nothing to add to the build for it to work in the typical case.
+
+Two consumer-side overrides this mod needs:
+
+- **`bridges { bridgePackage.set(...) }`.** mcdp's default bridge package is `<group>.<projectName>.mcdp_bridges`. With Gradle project names `fabric-1.21.1` / `neoforge-1.21.1`, the dots in the MC version turn `21` and `1` into illegal package segments. Pin a valid identifier: `de.lolhens.minecraft.fluidphysics.{fabric,neoforge}.mcdp_bridges`.
+- **`sharedPackages.add('de.lolhens.minecraft.fluidphysics.mixin.')`.** `FlowableFluidMixin implements FlowableFluidAccessor` — both are mixins in the same package. ADR-0018 explicitly leaves class-header references unrewritten; the cross-classloader cure is to load the mixin package parent-first (game-layer classloader). Safe here because every type in `…fluidphysics.mixin.` is itself a mixin and only ever referenced from other mixins.
+
+No mod source changes for this — all 9 mixins remain as written. The auto-bridge codegen does the rewrite at build time.
 
 ## Runtime contract
 
-mcdp is a separate mod, not bundled. Drop **both** jars into `mods/`:
+mcdp is a separate mod, not bundled. Drop **two** jars into `mods/`:
 
-- Fabric: `fluidphysics-…+fabric-1.21.1.jar` + `mcdp-fabric-0.1.0-SNAPSHOT.jar` (built from mc-scala via `:fabric:shadowJar`).
-- NeoForge: `fluidphysics-…+neoforge-1.21.1.jar` + `mcdp-neoforge-0.1.0-SNAPSHOT.jar` (built from mc-scala via `:neoforge:shadowJar`).
+- `fluidphysics-…+{fabric,neoforge}-1.21.1.jar`
+- `mcdp-0.1.0-SNAPSHOT.jar` (the unified jar built from mc-scala via `:mcdp:shadowJar`; one jar runs unmodified on Fabric or NeoForge).
 
 On first launch, mcdp downloads each `mcdepImplementation` artifact (Scala stdlib, cats, circe, transitive deps) from Maven Central into `~/.cache/mc-lib-provider/libs/<sha>.jar`. Net access is required only for the first run; subsequent runs hit the cache.
 
-A built fluidphysics jar contains `META-INF/mcdepprovider.toml` listing each declared dependency's coords, URL, and SHA-256. mcdp reads that manifest at boot, verifies SHAs against the cache, and serves each lib through the per-mod `URLClassLoader`. The keyword `cats.kernel.instances.byte` package never touches JPMS validation.
+A built fluidphysics jar contains:
+- `META-INF/mcdepprovider.toml` — each declared `mcdepImplementation` dependency's coords, URL, and SHA-256.
+- `META-INF/mcdp-bridges.toml` — every auto-generated `(mixin, field, bridgeInterface, impl)` tuple from the codegen.
+
+mcdp reads both at boot, verifies SHAs against the cache, serves each `mcdepImplementation` lib through the per-mod `URLClassLoader`, and registers the bridge entries so each rewritten mixin's `<clinit>` can resolve its `LOGIC_*` field. The keyword `cats.kernel.instances.byte` package never touches JPMS validation.
 
 ## CI
 
-`.github/workflows/build.yml` (modern job) clones mc-dependency-provider into a sibling directory and runs `:fabric:publishToMavenLocal :neoforge:publishToMavenLocal` before `./gradlew-1.21.1 build`. If the gitea.lhns.de host is down, CI fails — same as how the legacy `multi-1.21.1` branch fails when `maven.kotori316.com` is unreachable.
+`.github/workflows/build.yml` (modern job) clones mc-dependency-provider into a sibling directory and runs `:mcdp:publishToMavenLocal` before `./gradlew-1.21.1 build`. If the gitea.lhns.de host is down, CI fails — same as how the legacy `multi-1.21.1` branch fails when `maven.kotori316.com` is unreachable.
 
 ## Files touched on this branch
 
 ```
 .github/workflows/build.yml                     clone+publish mcdp first
+build-1.21.1.gradle                              shared-plugin-classloader root
 common-1.21.1/build.gradle                       cats version sourced from props
 common-1.21.1/gradle.properties                  cats_version
 docs/mcdp-port.md                                this file
 docs/README.md                                   index update
-fabric-1.21.1/build.gradle                       drop SCF, add mcdp + mcdepImplementation
+fabric-1.21.1/build.gradle                       drop SCF, add mcdp + mcdepImplementation + bridges DSL
 fabric-1.21.1/gradle.properties                  drop slp_fabric_version, add mcdp_version + cats_version
 fabric-1.21.1/src/main/resources/fabric.mod.json adapter + depends
-neoforge-1.21.1/build.gradle                     drop SCF + shadow, add mcdp + mcdepImplementation
+neoforge-1.21.1/build.gradle                     drop SCF + shadow, add mcdp + mcdepImplementation + bridges DSL
 neoforge-1.21.1/gradle.properties                drop scf_neoforge_version, add mcdp_version + cats_version
 neoforge-1.21.1/src/main/resources/META-INF/neoforge.mods.toml   modLoader
-settings-1.21.1.gradle                           includeBuild('../mc-scala')
+neoforge-1.21.1/src/main/scala/.../FluidPhysicsNeoForge.scala    drop unused ModContainer ctor param
+settings-1.21.1.gradle                           includeBuild('../mc-scala') for plugin + module
 ```
 
 ## Out of scope

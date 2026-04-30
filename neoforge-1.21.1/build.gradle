@@ -39,9 +39,10 @@ repositories {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
-    // Required for de.lhns.mcdp:mcdp-neoforge — published as a shadow jar to mavenLocal by
-    // mc-scala. Workflow before any runClient / build:
-    //   ../mc-scala/gradlew :neoforge:publishToMavenLocal
+    // Required for de.lhns.mcdp:mcdp — the unified runtime adapter (ADR-0016) is published
+    // as a shadow jar to mavenLocal by mc-scala (composite substitution can't replace the
+    // shadow jar; see ADR-0012 in mc-scala/docs/). Workflow before any runClient / build:
+    //   ../mc-scala/gradlew :mcdp:publishToMavenLocal
     mavenLocal()
     maven {
         name = 'SpongePowered'

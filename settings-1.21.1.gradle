@@ -3,9 +3,11 @@
 // points at the Gradle 8.10 wrapper under gradle-1.21.1/. The default settings.gradle lists
 // the legacy 1.15.2-1.18.2 modules and is used by the default ./gradlew on Gradle 7.3.
 
+// Composite-build mcdp (MC Dependency Provider) from a sibling checkout at ../mc-scala.
+// Both includeBuild forms are needed (ADR-0016): pluginManagement.includeBuild contributes
+// the `de.lhns.mcdp` Gradle plugin id, and the top-level includeBuild contributes modules
+// (auto-substitutes the `de.lhns.mcdp:mcdp` runtime dep to the `:mcdp` subproject).
 pluginManagement {
-    // Composite-build mcdp (MC Dependency Provider) so the Gradle plugin id "de.lhns.mcdp"
-    // resolves without a publish step. mc-scala lives as a sibling checkout.
     includeBuild('../mc-scala')
 
     repositories {
@@ -15,8 +17,6 @@ pluginManagement {
     }
 }
 
-// Top-level includeBuild contributes modules (auto-substitutes de.lhns.mcdp:mcdp → :mcdp).
-// Required in addition to pluginManagement.includeBuild per ADR-0016.
 includeBuild('../mc-scala')
 
 rootProject.name = 'mc-fluid-physics'

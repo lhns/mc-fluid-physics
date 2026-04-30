@@ -61,7 +61,8 @@ dependencies {
     compileOnly "org.spongepowered:mixin:0.8.7"
     annotationProcessor "org.spongepowered:mixin:0.8.7:processor"
 
-    // circe (compile-only in common — it's bundled at runtime by the platform jars).
+    // circe + cats — compile-only in common; at runtime they're served by mcdp's per-mod
+    // URLClassLoader (declared as `mcdepImplementation` in :fabric-1.21.1 / :neoforge-1.21.1).
     compileOnly "io.circe:circe-core_3:${project.circe_version}"
     compileOnly "io.circe:circe-parser_3:${project.circe_version}"
     compileOnly "io.circe:circe-generic_3:${project.circe_version}"

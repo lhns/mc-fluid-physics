@@ -17,9 +17,11 @@ import net.neoforged.neoforge.registries.RegisterEvent
 
 import java.nio.file.Path
 
-// mcdp's NeoForge loader fills constructor parameters from a context bag of [IEventBus, Dist]
-// (see de.lhns.mcdp.core.JavaEntrypointAdapter). ModContainer is intentionally not in that bag,
-// so this signature is just (IEventBus). vanilla javafml accepts the same shape.
+// mcdp's NeoForge loader fills constructor parameters from a context bag of
+// [IEventBus, ModContainer, Dist] with subset matching (ADR-0017 — same shape vanilla
+// FMLModContainer uses; see de.lhns.mcdp.core.JavaEntrypointAdapter#fillFromBag). Using
+// just (IEventBus) here matches a strict subset; add ModContainer or Dist to the ctor if
+// you need them.
 @Mod("fluidphysics")
 class FluidPhysicsNeoForge(modBus: IEventBus) {
 
