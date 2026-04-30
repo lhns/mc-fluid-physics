@@ -15,6 +15,10 @@ pluginManagement {
     }
 }
 
+// Top-level includeBuild contributes modules (auto-substitutes de.lhns.mcdp:mcdp → :mcdp).
+// Required in addition to pluginManagement.includeBuild per ADR-0016.
+includeBuild('../mc-scala')
+
 rootProject.name = 'mc-fluid-physics'
 // Use a separate root build file so fabric-loom + de.lhns.mcdp can be declared in a shared
 // plugins {} block without colliding with the legacy build.gradle (Gradle 7.3 / ForgeGradle 5,

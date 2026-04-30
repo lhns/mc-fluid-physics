@@ -49,10 +49,13 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // mcdp Fabric runtime adapter — replaces Scalable Cat's Force. Provides the
-    // `mcdepprovider` LanguageAdapter referenced in fabric.mod.json and the
-    // PreLaunchEntrypoint that wires up per-mod URLClassLoaders.
-    modImplementation "de.lhns.mcdp:mcdp-fabric:${project.mcdp_version}"
+    // mcdp unified runtime adapter (ADR-0016) — single jar bundles both Fabric and NeoForge
+    // adapters; auto-substituted from the composite-included :mcdp project. Provides the
+    // `mcdepprovider` LanguageAdapter referenced in fabric.mod.json and the PreLaunchEntrypoint
+    // that wires up per-mod URLClassLoaders. Auto Mixin → mod-private bridge codegen
+    // (ADR-0018) is on by default — plain Sponge-Common-style mixins call Scala objects
+    // directly; the gradle plugin synthesizes the bridge interface + impl + manifest.
+    modImplementation "de.lhns.mcdp:mcdp:${project.mcdp_version}"
 
     // Scala stdlib + circe + cats go through mcdp's per-mod URLClassLoader at runtime.
     // Declared as mcdepImplementation: the plugin walks the transitive closure, emits each
@@ -68,6 +71,24 @@ dependencies {
 
 mcdepprovider {
     lang.set('scala')
+    // Override the auto-derived bridge package: mcdp's default builds it as
+    //   <group>.<projectName.replace('-','_')>.mcdp_mixin_bridges
+    // which for projectName "fabric-1.21.1" becomes
+    //   de.lolhens.fabric_1.21.1.mcdp_mixin_bridges
+    // — the dots in the MC version turn "21" / "1" into package segments that aren't
+    // valid Java identifiers, blowing up at class-load time with
+    //   IllegalArgumentException: Invalid package name: '21' is not a Java identifier.
+    // Pin a valid identifier explicitly.
+    bridges {
+        bridgePackage.set('de.lolhens.minecraft.fluidphysics.fabric.mcdp_bridges')
+    }
+    // FlowableFluidMixin's class header is `implements FlowableFluidAccessor`, where the
+    // accessor is itself a mixin in the same package. ADR-0018 explicitly leaves class-header
+    // references unrewritten — the bridge codegen cannot strip the mod-private type from
+    // `interfaces[]`. Loading the mixin package parent-first (game-layer classloader) is the
+    // documented fix and is safe here: every type under `…fluidphysics.mixin.` is itself a
+    // mixin (target/accessor/injector) and only ever referenced from other mixins.
+    sharedPackages.add('de.lolhens.minecraft.fluidphysics.mixin.')
 }
 
 // java-mixin-stubber
