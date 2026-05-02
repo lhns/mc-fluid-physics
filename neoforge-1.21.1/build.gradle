@@ -39,13 +39,8 @@ repositories {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
-    // Sonatype Central Portal snapshots repo — hosts the unified `de.lhns.mcdp:mcdp` jar
-    // (ADR-0016) at SNAPSHOT versions. The Gradle plugin lives there too; see
-    // settings-1.21.1.gradle's pluginManagement.repositories.
-    maven {
-        name = 'sonatype-central-snapshots'
-        url = 'https://central.sonatype.com/repository/maven-snapshots/'
-    }
+    // mcdp (`de.lhns.mcdp:mcdp`) is published to Maven Central — release versions only.
+    // For SNAPSHOTs, add the sonatype-central-snapshots repo back.
     maven {
         name = 'SpongePowered'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
