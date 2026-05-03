@@ -39,13 +39,18 @@ repositories {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
-    // mcdp (`de.lhns.mcdp:mcdp`) is published to Maven Central — release versions only.
-    // For SNAPSHOTs, add the sonatype-central-snapshots repo back.
     maven {
         name = 'SpongePowered'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
     }
+    // mcdp (`de.lhns.mcdp:mcdp`) — release versions live on Maven Central, SNAPSHOTs on
+    // the Sonatype Central Portal snapshots repo. Both kept available so `mcdp_version`
+    // in root gradle.properties can flip between them without repo edits.
     mavenCentral()
+    maven {
+        name = 'sonatype-central-snapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+    }
 }
 
 neoForge {
